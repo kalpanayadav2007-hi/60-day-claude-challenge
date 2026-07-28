@@ -1,0 +1,66 @@
+# Day 17 – Vehicle Cost Analysis Dashboard
+
+## Objective
+
+The objective of this task was to analyze a vehicle cost dataset using AI and generate an interactive HTML dashboard. The dashboard provides insights into fuel costs, maintenance expenses, environmental impact, and E85 fuel economics through responsive KPI cards and SVG-based visualizations.
+
+---
+
+## Vehicle Details
+
+| Property           | Value                  |
+| ------------------ | ---------------------- |
+| Vehicle Model      | Hyundai i20            |
+| Fuel Type          | Petrol                 |
+| Usage              | Mixed (City & Highway) |
+| Distance per Month | 1200 km                |
+| Vehicle Age        | 3 Years                |
+
+---
+## screenshot of following attached
+  
+## Dashboard Screenshots
+
+### Dashboard Overview
+
+### KPI Cards
+
+### Fuel Cost & CO₂ Comparison Charts
+
+### E85 Score Gauge & Fuel Cards
+
+---
+
+## Key Analysis Findings
+
+* Petrol showed a balanced overall performance for daily mixed driving.
+* E85 had a lower fuel price but a higher cost per kilometer due to reduced mileage.
+* EV produced the lowest CO₂ emissions among all fuel types.
+* Diesel demonstrated competitive running costs but comparatively higher emissions.
+* CNG offered economical running costs while maintaining relatively low emissions.
+* Maintenance costs generally increased as vehicle age increased.
+* The generated dashboard clearly highlighted fuel cost comparisons, maintenance trends, environmental impact, and E85 break-even calculations using interactive SVG charts.
+
+---
+
+## Learnings
+
+* Learned how AI can automatically analyze CSV datasets and generate a complete HTML dashboard.
+* Improved understanding of vehicle cost metrics such as Cost per Kilometer, CO₂ per Kilometer, and Maintenance Cost per Kilometer.
+* Gained knowledge about E85 fuel economics, including pump savings, running penalties, break-even price, and scoring methodology.
+* Learned to build responsive dashboards using HTML, CSS, JavaScript, and SVG without external libraries.
+* Practiced documenting project outcomes and publishing work through GitHub for portfolio development.
+
+---
+
+## Files Included
+
+* `dashboard.html`
+* Dashboard screenshots
+* `day17.md`
+
+---
+
+## Conclusion
+
+This exercise demonstrated how AI-assisted data analysis can transform raw vehicle data into meaningful visual insights. The generated dashboard provides an effective way to compare different fuel types, evaluate operating costs, assess environmental impact, and support informed vehicle ownership decisions.

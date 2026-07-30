@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>World Cup 2026 — Live Intelligence Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch:#0F3D2E;
+    --pitch-line:#1B5E42;
+    --pitch-light:#175A3F;
+    --chalk:#F5F3EC;
+    --chalk-dim:#C9D3C9;
+    --gold:#D4AF37;
+    --red:#C1443C;
+    --card:#123F30;
+    --border:#2A5D46;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--pitch); color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    background-image:
+      repeating-linear-gradient(90deg, var(--pitch-line) 0px, var(--pitch-line) 2px, transparent 2px, transparent 90px);
+    padding:0 0 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+  h1,h2,h3{font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.03em;margin:0;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  /* HERO */
+  .hero{
+    padding:48px 0 28px; text-align:center; border-bottom:3px double var(--gold);
+  }
+  .hero .eyebrow{font-family:'JetBrains Mono',monospace; letter-spacing:0.3em; color:var(--gold); font-size:13px; margin-bottom:10px;}
+  .hero h1{font-size:44px; font-weight:700; color:var(--chalk); line-height:1.05;}
+  .hero .sub{color:var(--chalk-dim); font-size:15px; margin-top:10px;}
+
+  /* TICKER */
+  .ticker-outer{
+    background:#092A20; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    overflow:hidden; margin:0; padding:14px 0;
+  }
+  .ticker-track{display:flex; gap:0; width:max-content; animation:scroll 55s linear infinite;}
+  .ticker-track:hover{animation-play-state:paused;}
+  @keyframes scroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+  .tick{
+    font-family:'JetBrains Mono',monospace; font-size:14px; white-space:nowrap;
+    padding:0 22px; border-right:1px solid var(--border); display:flex; align-items:center; gap:10px;
+  }
+  .tick .grp{color:var(--gold); font-weight:700;}
+  .tick .score{background:#0A3325; padding:2px 8px; border-radius:3px; color:var(--chalk); font-weight:700;}
+
+  section{padding:44px 0;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:22px; border-bottom:1px solid var(--border); padding-bottom:12px;}
+  .section-head h2{font-size:24px; color:var(--gold);}
+  .section-head .count{font-family:'JetBrains Mono',monospace; color:var(--chalk-dim); font-size:13px;}
+
+  /* GROUPS GRID */
+  .groups-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px;}
+  .group-card{background:var(--card); border:1px solid var(--border); border-radius:6px; overflow:hidden;}
+  .group-card .gh{background:var(--pitch-light); padding:8px 14px; font-family:'Oswald',sans-serif; font-size:15px; letter-spacing:0.05em; display:flex; justify-content:space-between; align-items:center;}
+  .group-card table{width:100%; border-collapse:collapse; font-size:13px;}
+  .group-card th{color:var(--chalk-dim); font-weight:500; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.05em; padding:6px 10px 4px;}
+  .group-card td{padding:5px 10px; font-family:'JetBrains Mono',monospace;}
+  .group-card tr.lead td{color:var(--gold); font-weight:700;}
+  .group-card td.pos{color:var(--chalk-dim); width:20px;}
+  .group-card td.pts{text-align:right; font-weight:700;}
+
+  /* CONTENDERS */
+  .contender-row{
+    display:grid; grid-template-columns:36px 1fr 90px 220px; align-items:center;
+    gap:14px; padding:10px 0; border-bottom:1px solid var(--border);
+  }
+  .contender-row .rank{font-family:'Oswald',sans-serif; font-size:20px; color:var(--gold); text-align:center;}
+  .contender-row .name{font-size:16px; font-weight:500;}
+  .contender-row .meta{font-size:12px; color:var(--chalk-dim); margin-top:2px;}
+  .contender-row .form{display:flex; gap:8px; align-items:center;}
+  .bar-bg{flex:1; height:8px; background:#0A3325; border-radius:4px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--gold);}
+  .form-num{font-family:'JetBrains Mono',monospace; font-size:13px; width:26px; text-align:right;}
+  .wdl{display:flex; gap:4px;}
+  .pip{width:8px; height:8px; border-radius:50%;}
+  .pip.w{background:#4C9A6A;} .pip.d{background:#C9B24A;} .pip.l{background:var(--red);}
+
+  /* PLAYERS */
+  .players-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:14px;}
+  .player-card{background:var(--card); border:1px solid var(--border); border-radius:6px; padding:16px 14px; text-align:center;}
+  .player-card .rating{font-family:'Oswald',sans-serif; font-size:30px; color:var(--gold); line-height:1;}
+  .player-card .pname{font-weight:500; margin-top:8px; font-size:14px;}
+  .player-card .pcountry{font-size:11px; color:var(--chalk-dim); text-transform:uppercase; letter-spacing:0.04em; margin-top:2px;}
+  .player-card .pstats{margin-top:10px; display:flex; justify-content:center; gap:14px; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--chalk-dim);}
+  .player-card .pstats b{color:var(--chalk); font-weight:700;}
+
+  /* HISTORY */
+  .hist-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .hist-table th{text-align:left; color:var(--gold); font-family:'Oswald',sans-serif; font-weight:500; font-size:12px; letter-spacing:0.05em; padding:8px 10px; border-bottom:2px solid var(--gold);}
+  .hist-table td{padding:8px 10px; border-bottom:1px solid var(--border); font-family:'JetBrains Mono',monospace;}
+  .hist-table tr:hover{background:var(--card);}
+  .hist-table td.team{font-family:'Inter',sans-serif; font-weight:500;}
+
+  footer{text-align:center; padding:30px 0 10px; color:var(--chalk-dim); font-size:12px; font-family:'JetBrains Mono',monospace;}
+
+  @media(max-width:900px){
+    .groups-grid{grid-template-columns:repeat(2,1fr);}
+    .players-grid{grid-template-columns:repeat(2,1fr);}
+    .contender-row{grid-template-columns:28px 1fr 70px; }
+    .contender-row .form{display:none;}
+    .hero h1{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">FIFA WORLD CUP 2026 · LIVE THROUGH JUN 17</div>
+  <h1>Group Stage Intelligence</h1>
+  <div class="sub">21 matches played · 8 groups underway · form-ranked contenders</div>
+</div>
+
+<div class="ticker-outer">
+  <div class="ticker-track" id="tickerTrack"></div>
+</div>
+
+<div class="wrap">
+
+  <section id="groups">
+    <div class="section-head"><h2>Group standings</h2><span class="count">After 21 matches</span></div>
+    <div class="groups-grid" id="groupsGrid"></div>
+  </section>
+
+  <section id="contenders">
+    <div class="section-head"><h2>Top contenders — form ranking</h2><span class="count">FIFA rank · recent form</span></div>
+    <div id="contendersList"></div>
+  </section>
+
+  <section id="players">
+    <div class="section-head"><h2>Star players</h2><span class="count">Rating out of 100</span></div>
+    <div class="players-grid" id="playersGrid"></div>
+  </section>
+
+  <section id="history">
+    <div class="section-head"><h2>Historical pedigree</h2><span class="count">Last 50 matches pre-tournament</span></div>
+    <table class="hist-table">
+      <thead><tr><th>Team</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Win %</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>WORLD CUP INTELLIGENCE MASTER · DATA THROUGH JUNE 17 2026</footer>
+
+<script>
+const matches = [
+  {g:'A',d:'Jun 11',t1:'Mexico',s:'2-0',t2:'South Africa'},
+  {g:'A',d:'Jun 12',t1:'South Korea',s:'2-1',t2:'Czechia'},
+  {g:'B',d:'Jun 12',t1:'Canada',s:'1-1',t2:'Bosnia-Herz'},
+  {g:'D',d:'Jun 12',t1:'USA',s:'4-1',t2:'Paraguay'},
+  {g:'C',d:'Jun 13',t1:'Brazil',s:'1-1',t2:'Morocco'},
+  {g:'C',d:'Jun 13',t1:'Haiti',s:'0-1',t2:'Scotland'},
+  {g:'D',d:'Jun 13',t1:'Australia',s:'2-0',t2:'Turkey'},
+  {g:'E',d:'Jun 14',t1:'Germany',s:'7-1',t2:'Curaçao'},
+  {g:'E',d:'Jun 14',t1:'Ivory Coast',s:'1-0',t2:'Ecuador'},
+  {g:'F',d:'Jun 14',t1:'Netherlands',s:'2-2',t2:'Japan'},
+  {g:'F',d:'Jun 14',t1:'Sweden',s:'5-1',t2:'Tunisia'},
+  {g:'G',d:'Jun 15',t1:'Belgium',s:'1-1',t2:'Egypt'},
+  {g:'G',d:'Jun 15',t1:'Iran',s:'2-2',t2:'New Zealand'},
+  {g:'H',d:'Jun 15',t1:'Spain',s:'0-0',t2:'Cape Verde'},
+  {g:'H',d:'Jun 15',t1:'Saudi Arabia',s:'1-1',t2:'Uruguay'},
+  {g:'I',d:'Jun 16',t1:'France',s:'2-0',t2:'Senegal'},
+  {g:'J',d:'Jun 16',t1:'Argentina',s:'3-0',t2:'Algeria'},
+  {g:'J',d:'Jun 16',t1:'Austria',s:'3-1',t2:'Jordan'},
+  {g:'J',d:'Jun 16',t1:'Algeria',s:'0-3',t2:'Austria'},
+];
+
+const groups = {
+  A:[['Mexico',1,1,0,0,3],['South Korea',1,1,0,0,3],['Czechia',1,0,0,1,0],['South Africa',1,0,0,1,0]],
+  B:[['Canada',1,0,1,0,1],['Bosnia-Herzegovina',1,0,1,0,1],['Qatar',0,0,0,0,0],['Switzerland',0,0,0,0,0]],
+  C:[['Scotland',1,1,0,0,3],['Brazil',1,0,1,0,1],['Morocco',1,0,1,0,1],['Haiti',1,0,0,1,0]],
+  D:[['USA',1,1,0,0,3],['Australia',1,1,0,0,3],['Turkey',1,0,0,1,0],['Paraguay',1,0,0,1,0]],
+  E:[['Germany',1,1,0,0,3],['Ivory Coast',1,1,0,0,3],['Ecuador',1,0,0,1,0],['Curaçao',1,0,0,1,0]],
+  F:[['Sweden',1,1,0,0,3],['Netherlands',1,0,1,0,1],['Japan',1,0,1,0,1],['Tunisia',1,0,0,1,0]],
+  G:[['Belgium',1,0,1,0,1],['Iran',1,0,1,0,1],['New Zealand',1,0,1,0,1],['Egypt',1,0,1,0,1]],
+  H:[['Spain',1,0,1,0,1],['Saudi Arabia',1,0,1,0,1],['Uruguay',1,0,1,0,1],['Cape Verde',1,0,1,0,1]],
+  I:[['France',1,1,0,0,3],['Norway',0,0,0,0,0],['Iraq',0,0,0,0,0],['Senegal',1,0,0,1,0]],
+  J:[['Argentina',1,1,0,0,3],['Austria',1,1,0,0,3],['Jordan',1,0,0,1,0],['Algeria',1,0,0,1,0]],
+};
+
+const contenders = [
+  {rank:1,team:'Argentina',fifa:1,w:8,d:1,l:1,gf:22,ga:6,form:92},
+  {rank:2,team:'Spain',fifa:2,w:8,d:1,l:1,gf:24,ga:5,form:91},
+  {rank:3,team:'France',fifa:3,w:7,d:2,l:1,gf:21,ga:8,form:90},
+  {rank:4,team:'England',fifa:4,w:7,d:2,l:1,gf:20,ga:7,form:89},
+  {rank:5,team:'Portugal',fifa:5,w:7,d:1,l:2,gf:19,ga:7,form:88},
+  {rank:6,team:'Brazil',fifa:6,w:7,d:1,l:2,gf:23,ga:10,form:88},
+  {rank:7,team:'Germany',fifa:9,w:6,d:2,l:2,gf:22,ga:11,form:87},
+  {rank:8,team:'Morocco',fifa:12,w:6,d:3,l:1,gf:15,ga:6,form:86},
+];
+
+const players = [
+  {name:'Erling Haaland',country:'Norway',pos:'FW',g:25,a:4,r:94},
+  {name:'Kylian Mbappe',country:'France',pos:'FW',g:22,a:8,r:95},
+  {name:'Lionel Messi',country:'Argentina',pos:'FW',g:20,a:12,r:96},
+  {name:'Cristiano Ronaldo',country:'Portugal',pos:'FW',g:18,a:5,r:94},
+  {name:'Jude Bellingham',country:'England',pos:'MF',g:10,a:9,r:91},
+];
+
+const history = [
+  {team:'Brazil',w:35,d:8,l:7,gf:102,ga:30,pct:70},
+  {team:'Argentina',w:34,d:10,l:6,gf:98,ga:32,pct:68},
+  {team:'France',w:31,d:11,l:8,gf:89,ga:38,pct:62},
+  {team:'Spain',w:30,d:10,l:10,gf:87,ga:36,pct:60},
+  {team:'Netherlands',w:29,d:9,l:12,gf:83,ga:41,pct:58},
+  {team:'England',w:29,d:12,l:9,gf:84,ga:40,pct:58},
+  {team:'Germany',w:28,d:11,l:11,gf:85,ga:42,pct:56},
+  {team:'Portugal',w:27,d:12,l:11,gf:81,ga:44,pct:54},
+  {team:'Croatia',w:24,d:13,l:13,gf:70,ga:48,pct:48},
+  {team:'Morocco',w:22,d:15,l:13,gf:61,ga:40,pct:44},
+];
+
+function el(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!==undefined) e.innerHTML=html; return e; }
+
+// TICKER (duplicated for seamless loop)
+const track = document.getElementById('tickerTrack');
+function buildTicks(){
+  return matches.map(m=>`<div class="tick"><span class="grp">GRP ${m.g}</span><span>${m.t1}</span><span class="score">${m.s}</span><span>${m.t2}</span><span style="color:var(--chalk-dim)">${m.d}</span></div>`).join('');
+}
+track.innerHTML = buildTicks() + buildTicks();
+
+// GROUPS
+const grid = document.getElementById('groupsGrid');
+Object.keys(groups).sort().forEach(g=>{
+  const rows = groups[g];
+  const card = el('div','group-card');
+  card.appendChild(el('div','gh', `<span>Group ${g}</span><span class="mono" style="font-size:11px;color:var(--chalk-dim)">${rows[0][1]?'1 PLAYED':'PENDING'}</span>`));
+  const tbl = el('table');
+  tbl.innerHTML = '<tr><th></th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr>';
+  rows.forEach((r,i)=>{
+    const tr = el('tr', i===0 && r[5]>0 ? 'lead' : '');
+    tr.innerHTML = `<td class="pos">${i+1}</td><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td class="pts">${r[5]}</td>`;
+    tbl.appendChild(tr);
+  });
+  card.appendChild(tbl);
+  grid.appendChild(card);
+});
+
+// CONTENDERS
+const cList = document.getElementById('contendersList');
+contenders.forEach(c=>{
+  const row = el('div','contender-row');
+  const wdlPips = [...Array(c.w).fill('w'), ...Array(c.d).fill('d'), ...Array(c.l).fill('l')].slice(0,10)
+    .map(t=>`<span class="pip ${t}"></span>`).join('');
+  row.innerHTML = `
+    <div class="rank">${c.rank}</div>
+    <div><div class="name">${c.team}</div><div class="meta">FIFA #${c.fifa} · ${c.gf}-${c.ga} GD · ${c.w}W ${c.d}D ${c.l}L</div></div>
+    <div class="form-num">${c.form}</div>
+    <div class="form"><div class="bar-bg"><div class="bar-fill" style="width:${c.form}%"></div></div><div class="wdl">${wdlPips}</div></div>
+  `;
+  cList.appendChild(row);
+});
+
+// PLAYERS
+const pGrid = document.getElementById('playersGrid');
+players.sort((a,b)=>b.r-a.r).forEach(p=>{
+  const card = el('div','player-card');
+  card.innerHTML = `
+    <div class="rating">${p.r}</div>
+    <div class="pname">${p.name}</div>
+    <div class="pcountry">${p.country} · ${p.pos}</div>
+    <div class="pstats"><span><b>${p.g}</b> G</span><span><b>${p.a}</b> A</span></div>
+  `;
+  pGrid.appendChild(card);
+});
+
+// HISTORY
+const hBody = document.getElementById('historyBody');
+history.forEach(h=>{
+  const tr = el('tr');
+  tr.innerHTML = `<td class="team">${h.team}</td><td>${h.w}</td><td>${h.d}</td><td>${h.l}</td><td>${h.gf}</td><td>${h.ga}</td><td>${h.pct}%</td>`;
+  hBody.appendChild(tr);
+});
+</script>
+
+</body>
+</html>

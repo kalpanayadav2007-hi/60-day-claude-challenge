@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Face Puzzle Game</title>
+<style>
+  :root{
+    --bg1:#1e1b4b;
+    --bg2:#0f172a;
+    --accent:#8b5cf6;
+    --accent2:#ec4899;
+    --good:#22c55e;
+    --panel:rgba(255,255,255,0.06);
+    --panel-border:rgba(255,255,255,0.12);
+    --text:#f1f5f9;
+    --muted:#94a3b8;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(circle at 20% 20%, var(--bg1), var(--bg2) 60%);
+    color:var(--text);
+    -webkit-tap-highlight-color:transparent;
+  }
+  #app{
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 14px 60px;
+  }
+  h1{
+    font-size:1.8rem;
+    margin:6px 0 18px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-align:center;
+    letter-spacing:0.5px;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:16px;
+    padding:20px;
+    width:100%;
+    max-width:620px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.35);
+    backdrop-filter:blur(6px);
+    margin-bottom:18px;
+  }
+  .screen{display:none;flex-direction:column;align-items:center;width:100%;}
+  .screen.active{display:flex;}
+  video, canvas.snapshot-canvas{
+    width:100%;
+    max-width:480px;
+    border-radius:12px;
+    background:#000;
+    transform:scaleX(-1);
+  }
+  #videoWrap, #snapWrap{
+    position:relative;
+    width:100%;
+    max-width:480px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .btn{
+    appearance:none;
+    border:none;
+    cursor:pointer;
+    padding:12px 22px;
+    font-size:1rem;
+    font-weight:600;
+    border-radius:10px;
+    color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 4px 14px rgba(139,92,246,0.35);
+    transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    margin:6px;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(139,92,246,0.5);}
+  .btn:active{transform:translateY(0);}
+  .btn.secondary{
+    background:rgba(255,255,255,0.08);
+    box-shadow:none;
+    border:1px solid var(--panel-border);
+  }
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn-row{display:flex;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+  .error-box{
+    background:rgba(239,68,68,0.12);
+    border:1px solid rgba(239,68,68,0.4);
+    color:#fecaca;
+    padding:14px 16px;
+    border-radius:10px;
+    margin-top:14px;
+    text-align:center;
+    max-width:480px;
+    line-height:1.5;
+    font-size:0.92rem;
+  }
+  .difficulty-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+  .diff-btn{
+    padding:16px 20px;
+    border-radius:14px;
+    border:2px solid var(--panel-border);
+    background:rgba(255,255,255,0.05);
+    color:var(--text);
+    font-size:1.05rem;
+    font-weight:700;
+    cursor:pointer;
+    min-width:110px;
+    text-align:center;
+    transition:all .15s ease;
+  }
+  .diff-btn small{display:block;font-weight:400;color:var(--muted);margin-top:4px;font-size:0.75rem;}
+  .diff-btn:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .diff-btn.selected{border-color:var(--accent2);background:rgba(236,72,153,0.15);}
+
+  #hud{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:10px;
+    width:100%;
+    max-width:520px;
+    margin-bottom:14px;
+  }
+  .stat{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:8px 14px;
+    text-align:center;
+    flex:1;
+    min-width:100px;
+  }
+  .stat .label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+  .stat .value{font-size:1.15rem;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;}
+
+  #boardWrap{
+    position:relative;
+    width:100%;
+    max-width:520px;
+    aspect-ratio:1/1;
+    margin:0 auto;
+    border-radius:14px;
+    overflow:hidden;
+    border:2px solid var(--panel-border);
+    background:#000;
+    touch-action:none;
+    user-select:none;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  }
+  .cell-bg{
+    position:absolute;
+    inset:0;
+    display:grid;
+    opacity:0.12;
+  }
+  .piece{
+    position:absolute;
+    background-size:cover;
+    background-repeat:no-repeat;
+    border:2px solid rgba(255,255,255,0.15);
+    box-sizing:border-box;
+    cursor:grab;
+    transition:left .18s ease, top .18s ease, border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+    will-change:left, top;
+  }
+  .piece.dragging{
+    cursor:grabbing;
+    border-color:#fbbf24;
+    box-shadow:0 0 0 3px rgba(251,191,36,0.5), 0 8px 24px rgba(0,0,0,0.5);
+    z-index:50;
+    transition:none;
+  }
+  .piece.correct{
+    border-color:var(--good);
+    box-shadow:0 0 0 2px rgba(34,197,94,0.5);
+  }
+
+  #resultOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(10,10,20,0.82);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    padding:16px;
+  }
+  #resultOverlay.active{display:flex;}
+  .result-card{
+    background:linear-gradient(160deg, rgba(30,27,75,0.95), rgba(15,23,42,0.95));
+    border:1px solid var(--panel-border);
+    border-radius:18px;
+    padding:28px 24px;
+    max-width:420px;
+    width:100%;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    animation:popIn .3s ease;
+  }
+  @keyframes popIn{from{transform:scale(0.85);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .result-card h2{
+    margin:0 0 4px;
+    font-size:1.6rem;
+    background:linear-gradient(90deg,#fbbf24,var(--accent2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .result-stats{
+    display:flex;
+    justify-content:space-around;
+    margin:18px 0;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .result-stats div{flex:1;min-width:90px;}
+  .result-stats .big{font-size:1.3rem;font-weight:700;}
+  .result-stats .small{font-size:0.72rem;color:var(--muted);text-transform:uppercase;}
+
+  .leaderboard{
+    margin-top:16px;
+    text-align:left;
+    background:rgba(0,0,0,0.25);
+    border-radius:10px;
+    padding:12px 14px;
+    max-height:180px;
+    overflow-y:auto;
+  }
+  .leaderboard h3{margin:0 0 8px;font-size:0.95rem;color:var(--muted);text-align:center;}
+  .lb-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.85rem;
+    padding:5px 0;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .lb-row:last-child{border-bottom:none;}
+  .lb-rank{color:#fbbf24;font-weight:700;margin-right:6px;}
+  .lb-empty{color:var(--muted);font-size:0.85rem;text-align:center;padding:8px 0;}
+
+  #winBanner{
+    display:none;
+    text-align:center;
+    font-size:1.1rem;
+    color:var(--good);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .hint{color:var(--muted);font-size:0.85rem;text-align:center;margin-top:8px;max-width:480px;}
+  footer{color:var(--muted);font-size:0.75rem;margin-top:20px;text-align:center;}
+</style>
+</head>
+<body>
+<div id="app">
+  <h1>🧩 Face Puzzle Game</h1>
+
+  <!-- SCREEN 1: CAMERA -->
+  <div class="screen active" id="screen-camera">
+    <div class="panel" style="display:flex;flex-direction:column;align-items:center;">
+      <div id="videoWrap">
+        <video id="video" autoplay playsinline muted></video>
+      </div>
+      <div id="cameraError" style="display:none;" class="error-box"></div>
+      <div class="btn-row">
+        <button class="btn" id="btnStartCamera">Enable Camera</button>
+        <button class="btn" id="btnTakePhoto" style="display:none;">📸 Take Photo</button>
+      </div>
+      <p class="hint">Allow camera access, center your face, then take a photo to build your puzzle.</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: SNAPSHOT REVIEW -->
+  <div class="screen" id="screen-snapshot">
+    <div class="panel" style="display:flex;flex-direction:column;align-items:center;">
+      <div id="snapWrap">
+        <canvas id="snapCanvas" class="snapshot-canvas"></canvas>
+      </div>
+      <div class="btn-row">
+        <button class="btn secondary" id="btnRetake">🔄 Retake Photo</button>
+        <button class="btn" id="btnUsePhoto">Use This Photo ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: DIFFICULTY -->
+  <div class="screen" id="screen-difficulty">
+    <div class="panel" style="display:flex;flex-direction:column;align-items:center;">
+      <h2 style="margin-top:0;">Choose Difficulty</h2>
+      <div class="difficulty-row">
+        <div class="diff-btn" data-size="3">3 × 3<small>Easy</small></div>
+        <div class="diff-btn selected" data-size="4">4 × 4<small>Medium</small></div>
+        <div class="diff-btn" data-size="5">5 × 5<small>Hard</small></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn secondary" id="btnBackToSnap">← Back</button>
+        <button class="btn" id="btnStartPuzzle">Start Puzzle ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: PUZZLE -->
+  <div class="screen" id="screen-puzzle">
+    <div id="winBanner">🎉 Solved! 🎉</div>
+    <div id="hud">
+      <div class="stat"><div class="label">Time</div><div class="value" id="statTime">00:00.0</div></div>
+      <div class="stat"><div class="label">Moves</div><div class="value" id="statMoves">0</div></div>
+      <div class="stat"><div class="label">Placed</div><div class="value" id="statPlaced">0/0</div></div>
+    </div>
+    <div id="boardWrap"></div>
+    <div class="btn-row">
+      <button class="btn secondary" id="btnPlayAgainMid">🔀 Shuffle Again</button>
+      <button class="btn secondary" id="btnNewPhotoMid">📷 New Photo</button>
+    </div>
+  </div>
+
+  <footer>Your photo never leaves your device — everything runs locally in the browser.</footer>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div id="resultOverlay">
+  <div class="result-card">
+    <h2>🏆 Puzzle Solved!</h2>
+    <div class="result-stats">
+      <div><div class="big" id="resTime">00:00.0</div><div class="small">Final Time</div></div>
+      <div><div class="big" id="resMoves">0</div><div class="small">Moves</div></div>
+      <div><div class="big" id="resDiff">4×4</div><div class="small">Difficulty</div></div>
+    </div>
+    <div class="leaderboard">
+      <h3>🥇 Top 5 Best Times</h3>
+      <div id="lbList"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="btnPlayAgain">🔀 Play Again</button>
+      <button class="btn secondary" id="btnNewPhoto">📷 New Photo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- STATE ----------
+  let stream = null;
+  let capturedDataUrl = null;
+  let gridSize = 4;
+  let pieces = [];        // array of {correctIndex, el, currentIndex}
+  let cellPositions = []; // px positions for each cell index (top-left)
+  let boardSize = 0;      // px
+  let cellSize = 0;       // px
+  let moves = 0;
+  let startTime = null;
+  let timerInterval = null;
+  let solved = false;
+  let dragState = null;
+
+  // ---------- ELEMENTS ----------
+  const screens = {
+    camera: document.getElementById('screen-camera'),
+    snapshot: document.getElementById('screen-snapshot'),
+    difficulty: document.getElementById('screen-difficulty'),
+    puzzle: document.getElementById('screen-puzzle')
+  };
+  const video = document.getElementById('video');
+  const btnStartCamera = document.getElementById('btnStartCamera');
+  const btnTakePhoto = document.getElementById('btnTakePhoto');
+  const cameraError = document.getElementById('cameraError');
+  const snapCanvas = document.getElementById('snapCanvas');
+  const btnRetake = document.getElementById('btnRetake');
+  const btnUsePhoto = document.getElementById('btnUsePhoto');
+  const btnBackToSnap = document.getElementById('btnBackToSnap');
+  const btnStartPuzzle = document.getElementById('btnStartPuzzle');
+  const diffButtons = document.querySelectorAll('.diff-btn');
+  const boardWrap = document.getElementById('boardWrap');
+  const statTime = document.getElementById('statTime');
+  const statMoves = document.getElementById('statMoves');
+  const statPlaced = document.getElementById('statPlaced');
+  const winBanner = document.getElementById('winBanner');
+  const btnPlayAgainMid = document.getElementById('btnPlayAgainMid');
+  const btnNewPhotoMid = document.getElementById('btnNewPhotoMid');
+  const resultOverlay = document.getElementById('resultOverlay');
+  const resTime = document.getElementById('resTime');
+  const resMoves = document.getElementById('resMoves');
+  const resDiff = document.getElementById('resDiff');
+  const lbList = document.getElementById('lbList');
+  const btnPlayAgain = document.getElementById('btnPlayAgain');
+  const btnNewPhoto = document.getElementById('btnNewPhoto');
+
+  function showScreen(name){
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  // ---------- CAMERA ----------
+  async function startCamera(){
+    cameraError.style.display = 'none';
+    btnStartCamera.disabled = true;
+    btnStartCamera.textContent = 'Requesting access...';
+    try{
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        throw new Error('NOTSUPPORTED');
+      }
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 720 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      await video.play();
+      btnStartCamera.style.display = 'none';
+      btnTakePhoto.style.display = 'inline-block';
+    }catch(err){
+      let msg;
+      if(err && err.message === 'NOTSUPPORTED'){
+        msg = 'Your browser does not support camera access (getUserMedia). Try a modern version of Chrome, Firefox, or Safari, and make sure this page is served over HTTPS or localhost.';
+      } else if(err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')){
+        msg = 'Camera permission was denied. Please allow camera access in your browser settings and try again.';
+      } else if(err && err.name === 'NotFoundError'){
+        msg = 'No camera was found on this device.';
+      } else if(err && err.name === 'NotReadableError'){
+        msg = 'Your camera is already in use by another application.';
+      } else {
+        msg = 'Could not access the camera: ' + (err && err.message ? err.message : 'Unknown error') + '. Make sure this page is served over HTTPS or localhost.';
+      }
+      cameraError.textContent = msg;
+      cameraError.style.display = 'block';
+      btnStartCamera.disabled = false;
+      btnStartCamera.textContent = 'Try Again';
+    }
+  }
+
+  function stopCamera(){
+    if(stream){
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
+
+  btnStartCamera.addEventListener('click', startCamera);
+
+  btnTakePhoto.addEventListener('click', () => {
+    const size = Math.min(video.videoWidth, video.videoHeight) || 480;
+    snapCanvas.width = size;
+    snapCanvas.height = size;
+    const ctx = snapCanvas.getContext('2d');
+    const sx = (video.videoWidth - size) / 2;
+    const sy = (video.videoHeight - size) / 2;
+    // mirror to match preview (video element is CSS-mirrored, canvas draw is raw)
+    ctx.save();
+    ctx.translate(size, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+    ctx.restore();
+    capturedDataUrl = snapCanvas.toDataURL('image/png');
+    showScreen('snapshot');
+  });
+
+  btnRetake.addEventListener('click', () => {
+    showScreen('camera');
+  });
+
+  btnUsePhoto.addEventListener('click', () => {
+    showScreen('difficulty');
+  });
+
+  btnBackToSnap.addEventListener('click', () => {
+    showScreen('snapshot');
+  });
+
+  // ---------- DIFFICULTY ----------
+  diffButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      diffButtons.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      gridSize = parseInt(btn.dataset.size, 10);
+    });
+  });
+
+  btnStartPuzzle.addEventListener('click', () => {
+    showScreen('puzzle');
+    buildPuzzle();
+  });
+
+  // ---------- PUZZLE BUILD ----------
+  function shuffleSolvable(n){
+    // Build array 0..n-1, positions represent "which correct-index piece sits at this cell"
+    // Guarantee solvable by generating via random adjacent-swaps count check for 15-puzzle style parity,
+    // but since ALL pieces are always present (no blank tile), any permutation is trivially "solvable"
+    // by direct swapping (since we allow free swap of any two tiles by drag & drop), so we just
+    // ensure it's not already solved and use Fisher-Yates.
+    let arr = Array.from({length:n}, (_,i)=>i);
+    do{
+      for(let i=arr.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]] = [arr[j],arr[i]];
+      }
+    } while(isSolvedArrangement(arr) && n > 1);
+    return arr;
+  }
+
+  function isSolvedArrangement(arr){
+    return arr.every((v,i)=>v===i);
+  }
+
+  function buildPuzzle(){
+    // reset state
+    moves = 0;
+    solved = false;
+    clearInterval(timerInterval);
+    winBanner.style.display = 'none';
+    statMoves.textContent = '0';
+    updateStatTime(0);
+
+    boardWrap.innerHTML = '';
+    pieces = [];
+
+    // compute board pixel size (square, responsive)
+    boardSize = boardWrap.getBoundingClientRect().width;
+    cellSize = boardSize / gridSize;
+
+    const total = gridSize * gridSize;
+    statPlaced.textContent = `0/${total}`;
+
+    // precompute cell positions
+    cellPositions = [];
+    for(let r=0;r<gridSize;r++){
+      for(let c=0;c<gridSize;c++){
+        cellPositions.push({ x: c*cellSize, y: r*cellSize, row:r, col:c });
+      }
+    }
+
+    const order = shuffleSolvable(total);
+
+    for(let cellIndex=0; cellIndex<total; cellIndex++){
+      const correctIndex = order[cellIndex];
+      const row = Math.floor(correctIndex / gridSize);
+      const col = correctIndex % gridSize;
+
+      const el = document.createElement('div');
+      el.className = 'piece';
+      el.style.width = cellSize + 'px';
+      el.style.height = cellSize + 'px';
+      el.style.backgroundImage = `url(${capturedDataUrl})`;
+      el.style.backgroundSize = `${boardSize}px ${boardSize}px`;
+      el.style.backgroundPosition = `-${col*cellSize}px -${row*cellSize}px`;
+
+      const pos = cellPositions[cellIndex];
+      el.style.left = pos.x + 'px';
+      el.style.top = pos.y + 'px';
+
+      el.dataset.correctIndex = correctIndex;
+      el.dataset.currentIndex = cellIndex;
+
+      attachDragHandlers(el);
+      boardWrap.appendChild(el);
+      pieces.push(el);
+    }
+
+    updateCorrectHighlights();
+    startTimer();
+  }
+
+  // ---------- TIMER ----------
+  function startTimer(){
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      updateStatTime(Date.now() - startTime);
+    }, 100);
+  }
+
+  function updateStatTime(ms){
+    const totalMs = Math.max(0, ms);
+    const totalSec = totalMs / 1000;
+    const mm = Math.floor(totalSec / 60);
+    const ss = Math.floor(totalSec % 60);
+    const t = Math.floor((totalSec * 10) % 10);
+    statTime.textContent = `${pad(mm)}:${pad(ss)}.${t}`;
+  }
+
+  function pad(n){ return n.toString().padStart(2,'0'); }
+
+  // ---------- DRAG & DROP (mouse + touch unified) ----------
+  function attachDragHandlers(el){
+    el.addEventListener('mousedown', onDragStart);
+    el.addEventListener('touchstart', onDragStart, { passive:false });
+  }
+
+  function getPoint(e){
+    if(e.touches && e.touches.length){
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    if(e.changedTouches && e.changedTouches.length){
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onDragStart(e){
+    if(solved) return;
+    e.preventDefault();
+    const el = e.currentTarget;
+    const rect = boardWrap.getBoundingClientRect();
+    const pt = getPoint(e);
+
+    dragState = {
+      el,
+      startCurrentIndex: parseInt(el.dataset.currentIndex, 10),
+      offsetX: pt.x - rect.left - parseFloat(el.style.left),
+      offsetY: pt.y - rect.top - parseFloat(el.style.top),
+      boardRect: rect
+    };
+
+    el.classList.add('dragging');
+    boardWrap.appendChild(el); // bring to front
+
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('touchmove', onDragMove, { passive:false });
+    document.addEventListener('mouseup', onDragEnd);
+    document.addEventListener('touchend', onDragEnd);
+  }
+
+  function onDragMove(e){
+    if(!dragState) return;
+    e.preventDefault();
+    const pt = getPoint(e);
+    const rect = dragState.boardRect;
+    let x = pt.x - rect.left - dragState.offsetX;
+    let y = pt.y - rect.top - dragState.offsetY;
+
+    // clamp within board loosely
+    const max = boardSize - cellSize;
+    x = Math.max(-cellSize*0.4, Math.min(max + cellSize*0.4, x));
+    y = Math.max(-cellSize*0.4, Math.min(max + cellSize*0.4, y));
+
+    dragState.el.style.left = x + 'px';
+    dragState.el.style.top = y + 'px';
+  }
+
+  function onDragEnd(e){
+    if(!dragState) return;
+    const pt = getPoint(e);
+    const rect = dragState.boardRect;
+    const relX = pt.x - rect.left - dragState.offsetX + cellSize/2;
+    const relY = pt.y - rect.top - dragState.offsetY + cellSize/2;
+
+    let col = Math.floor(relX / cellSize);
+    let row = Math.floor(relY / cellSize);
+    col = Math.max(0, Math.min(gridSize-1, col));
+    row = Math.max(0, Math.min(gridSize-1, row));
+    const targetCellIndex = row * gridSize + col;
+
+    const draggedEl = dragState.el;
+    const fromIndex = dragState.startCurrentIndex;
+
+    draggedEl.classList.remove('dragging');
+
+    if(targetCellIndex !== fromIndex){
+      // find piece currently occupying target cell
+      const otherEl = pieces.find(p => parseInt(p.dataset.currentIndex,10) === targetCellIndex);
+
+      // move dragged piece to target
+      placeAt(draggedEl, targetCellIndex);
+      // move other piece to dragged's original cell
+      if(otherEl){
+        placeAt(otherEl, fromIndex);
+      }
+
+      moves++;
+      statMoves.textContent = moves.toString();
+      updateCorrectHighlights();
+      checkWin();
+    } else {
+      // snap back to same cell
+      placeAt(draggedEl, fromIndex);
+    }
+
+    dragState = null;
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('touchmove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+    document.removeEventListener('touchend', onDragEnd);
+  }
+
+  function placeAt(el, cellIndex){
+    const pos = cellPositions[cellIndex];
+    el.style.left = pos.x + 'px';
+    el.style.top = pos.y + 'px';
+    el.dataset.currentIndex = cellIndex;
+  }
+
+  function updateCorrectHighlights(){
+    let correctCount = 0;
+    pieces.forEach(el => {
+      const isCorrect = parseInt(el.dataset.currentIndex,10) === parseInt(el.dataset.correctIndex,10);
+      el.classList.toggle('correct', isCorrect);
+      if(isCorrect) correctCount++;
+    });
+    statPlaced.textContent = `${correctCount}/${pieces.length}`;
+    return correctCount;
+  }
+
+  function checkWin(){
+    const correctCount = updateCorrectHighlights();
+    if(correctCount === pieces.length && pieces.length > 0){
+      solved = true;
+      clearInterval(timerInterval);
+      const elapsedMs = Date.now() - startTime;
+      updateStatTime(elapsedMs);
+      winBanner.style.display = 'block';
+      showResults(elapsedMs);
+    }
+  }
+
+  // ---------- RESULTS & LEADERBOARD ----------
+  const LB_KEY = 'facePuzzleLeaderboard';
+
+  function formatTime(ms){
+    const totalSec = ms / 1000;
+    const mm = Math.floor(totalSec / 60);
+    const ss = Math.floor(totalSec % 60);
+    const t = Math.floor((totalSec * 10) % 10);
+    return `${pad(mm)}:${pad(ss)}.${t}`;
+  }
+
+  function loadLeaderboard(){
+    try{
+      const raw = localStorage.getItem(LB_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  function saveLeaderboard(list){
+    try{
+      localStorage.setItem(LB_KEY, JSON.stringify(list));
+    }catch(e){ /* storage unavailable, ignore */ }
+  }
+
+  function addResultToLeaderboard(elapsedMs){
+    const list = loadLeaderboard();
+    list.push({
+      time: elapsedMs,
+      moves: moves,
+      difficulty: `${gridSize}×${gridSize}`,
+      date: new Date().toLocaleDateString()
+    });
+    list.sort((a,b) => a.time - b.time);
+    const top5 = list.slice(0,5);
+    saveLeaderboard(top5);
+    return top5;
+  }
+
+  function renderLeaderboard(list){
+    if(!list.length){
+      lbList.innerHTML = '<div class="lb-empty">No times yet — this could be your first!</div>';
+      return;
+    }
+    lbList.innerHTML = list.map((entry, i) => `
+      <div class="lb-row">
+        <span><span class="lb-rank">#${i+1}</span>${formatTime(entry.time)} · ${entry.difficulty}</span>
+        <span>${entry.moves} mv · ${entry.date}</span>
+      </div>
+    `).join('');
+  }
+
+  function showResults(elapsedMs){
+    resTime.textContent = formatTime(elapsedMs);
+    resMoves.textContent = moves.toString();
+    resDiff.textContent = `${gridSize}×${gridSize}`;
+    const top5 = addResultToLeaderboard(elapsedMs);
+    renderLeaderboard(top5);
+    resultOverlay.classList.add('active');
+  }
+
+  btnPlayAgain.addEventListener('click', () => {
+    resultOverlay.classList.remove('active');
+    buildPuzzle();
+  });
+
+  btnNewPhoto.addEventListener('click', () => {
+    resultOverlay.classList.remove('active');
+    goToNewPhoto();
+  });
+
+  btnPlayAgainMid.addEventListener('click', () => {
+    buildPuzzle();
+  });
+
+  btnNewPhotoMid.addEventListener('click', () => {
+    goToNewPhoto();
+  });
+
+  function goToNewPhoto(){
+    clearInterval(timerInterval);
+    showScreen('camera');
+    btnStartCamera.style.display = 'inline-block';
+    btnTakePhoto.style.display = 'none';
+    btnStartCamera.disabled = false;
+    btnStartCamera.textContent = 'Enable Camera';
+    stopCamera();
+    startCamera();
+  }
+
+  // rebuild layout on resize (recompute cell size & reposition pieces without losing state)
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    if(screens.puzzle.classList.contains('active') && pieces.length){
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        const newBoardSize = boardWrap.getBoundingClientRect().width;
+        if(!newBoardSize) return;
+        boardSize = newBoardSize;
+        cellSize = boardSize / gridSize;
+        cellPositions = [];
+        for(let r=0;r<gridSize;r++){
+          for(let c=0;c<gridSize;c++){
+            cellPositions.push({ x: c*cellSize, y: r*cellSize, row:r, col:c });
+          }
+        }
+        pieces.forEach(el => {
+          const row = Math.floor(parseInt(el.dataset.correctIndex,10) / gridSize);
+          const col = parseInt(el.dataset.correctIndex,10) % gridSize;
+          el.style.width = cellSize + 'px';
+          el.style.height = cellSize + 'px';
+          el.style.backgroundSize = `${boardSize}px ${boardSize}px`;
+          el.style.backgroundPosition = `-${col*cellSize}px -${row*cellSize}px`;
+          const pos = cellPositions[parseInt(el.dataset.currentIndex,10)];
+          el.style.left = pos.x + 'px';
+          el.style.top = pos.y + 'px';
+        });
+      }, 150);
+    }
+  });
+
+  // initial: attempt camera start automatically on load for smoother UX
+  // (still requires user gesture on some browsers, so button remains available)
+})();
+</script>
+</body>
+</html>

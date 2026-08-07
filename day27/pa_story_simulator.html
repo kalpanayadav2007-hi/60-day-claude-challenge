@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Humira File — A Prior Authorization Story</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#E9E4D6;
+    --paper-dark:#DED6C2;
+    --folder:#C79A3D;
+    --ink:#20293A;
+    --ink-soft:#4A5468;
+    --teal:#0F6B5C;
+    --teal-dark:#0B4F45;
+    --clay:#B3452B;
+    --approve:#2F6B3A;
+    --line:#C8BFA8;
+  }
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #F1ECDF 0%, transparent 60%),
+      var(--paper);
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+  }
+  .font-display{font-family:'Roboto Slab',serif;}
+  .font-hand{font-family:'Caveat',cursive;}
+
+  /* Folder tab progress bar */
+  .tab-track{
+    display:flex;
+    gap:4px;
+  }
+  .tab{
+    flex:1;
+    height:10px;
+    background:var(--paper-dark);
+    border-radius:2px;
+    position:relative;
+    overflow:hidden;
+  }
+  .tab.done{background:var(--teal);}
+  .tab.current{background:var(--folder);}
+
+  .case-file{
+    background:#FBF8F0;
+    border:1px solid var(--line);
+    box-shadow:0 1px 0 rgba(0,0,0,0.04), 0 12px 30px -18px rgba(32,41,58,0.35);
+    border-radius:10px;
+  }
+
+  .bubble-rahul{
+    background:#FFFFFF;
+    border:1px solid var(--line);
+    border-top-left-radius:4px;
+  }
+  .bubble-priya{
+    background:var(--teal);
+    color:#F4F1E6;
+    border-top-right-radius:4px;
+  }
+  .avatar{
+    width:38px;height:38px;
+    border-radius:9999px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;
+    flex:none;
+    border:2px solid var(--paper);
+    box-shadow:0 0 0 1px var(--line);
+  }
+  .narrator-line{
+    font-family:'Roboto Slab',serif;
+    font-style:italic;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  .doctor-line{
+    font-family:'Roboto Slab',serif;
+    font-style:italic;
+    color:var(--teal-dark);
+    text-align:center;
+  }
+
+  .choice-btn{
+    border:1.5px solid var(--ink);
+    background:transparent;
+    transition:transform .12s ease, background .15s ease, color .15s ease;
+  }
+  .choice-btn:hover{
+    background:var(--ink);
+    color:var(--paper);
+    transform:translateY(-1px);
+  }
+  .choice-btn:focus-visible, .choice-btn:focus{
+    outline:3px solid var(--folder);
+    outline-offset:2px;
+  }
+  .primary-btn{
+    background:var(--teal);
+    color:#F4F1E6;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .primary-btn:hover{background:var(--teal-dark); transform:translateY(-1px);}
+  .primary-btn:focus-visible{outline:3px solid var(--folder); outline-offset:2px;}
+
+  /* Rubber stamp */
+  .stamp{
+    display:inline-block;
+    font-family:'Roboto Slab',serif;
+    font-weight:700;
+    letter-spacing:0.08em;
+    border:4px solid currentColor;
+    border-radius:10px;
+    padding:8px 22px;
+    transform:rotate(-7deg);
+    text-transform:uppercase;
+    animation:stampIn .35s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes stampIn{
+    0%{transform:rotate(-7deg) scale(2.2); opacity:0;}
+    60%{opacity:1;}
+    100%{transform:rotate(-7deg) scale(1); opacity:1;}
+  }
+  .stamp-approve{color:var(--approve); box-shadow: inset 0 0 0 2px rgba(47,107,58,0.15);}
+  .stamp-deny{color:var(--clay); box-shadow: inset 0 0 0 2px rgba(179,69,43,0.15);}
+
+  .illustrative-tag{
+    font-size:11px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    border:1px dashed var(--line);
+    padding:2px 8px;
+    border-radius:999px;
+  }
+
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .msg-in{animation:fadeUp .3s ease both;}
+
+  @media (prefers-reduced-motion: reduce){
+    .msg-in, .stamp{animation:none !important;}
+    .choice-btn:hover, .primary-btn:hover{transform:none;}
+  }
+
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+</style>
+</head>
+<body class="min-h-screen">
+
+<div class="max-w-2xl mx-auto px-4 py-6 sm:py-10">
+
+  <!-- Header / folder tab -->
+  <header class="mb-5">
+    <div class="flex items-center gap-3 mb-1">
+      <div class="w-9 h-9 rounded-md flex items-center justify-center font-display font-bold text-sm" style="background:var(--folder); color:#2A2110;">PA</div>
+      <div>
+        <h1 class="font-display text-xl sm:text-2xl font-bold leading-none" style="color:var(--ink);">The Humira File</h1>
+        <p class="text-xs" style="color:var(--ink-soft);">A Prior Authorization Story · Beginner's Guide</p>
+      </div>
+    </div>
+    <div class="tab-track mt-4" id="progressTrack" aria-label="Story progress" role="progressbar" aria-valuemin="1" aria-valuemax="8"></div>
+    <p class="text-xs mt-1" id="progressLabel" style="color:var(--ink-soft);"></p>
+  </header>
+
+  <!-- Case file window -->
+  <main class="case-file p-4 sm:p-6">
+    <div id="sceneHeading" class="mb-4"></div>
+    <div id="chatFeed" class="flex flex-col gap-4 min-h-[220px]" aria-live="polite"></div>
+    <div id="choiceArea" class="mt-5 flex flex-col sm:flex-row gap-3"></div>
+    <div id="continueArea" class="mt-5"></div>
+  </main>
+
+  <footer class="text-center mt-5">
+    <span class="illustrative-tag">"StarCare Health" is an illustrative example payer for this story</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+
+  // ---------- Story data ----------
+  // Each scene: id, title, eyebrow, chat: array of {speaker:'rahul'|'priya'|'narrator'|'doctor', text}
+  // choices: array of 2 {label, response:{speaker,text}} which append one extra exchange, then reveal continue button.
+
+  const scenes = [
+    { // 1
+      title: "Doctor Visit",
+      eyebrow: "Scene 1 of 8 · City Medical Center",
+      chat: [
+        {speaker:'narrator', text:"Rahul has had stiff, swollen joints for three months. Today he finally sees a rheumatologist."},
+        {speaker:'rahul', text:"Dr. Patel, my hands are so stiff every morning, I can barely hold a cup of chai."},
+        {speaker:'doctor', text:"Dr. Patel examines his hands and reviews his blood work."},
+        {speaker:'doctor', text:"This looks like Rheumatoid Arthritis — your immune system is attacking your joints. I'd like to start you on a medicine called Humira."},
+        {speaker:'rahul', text:"Okay... is that a pill?"},
+        {speaker:'doctor', text:"It's an injection you take at home, every other week. It's very effective, but it's also expensive — so your insurance will want to review it first."},
+      ],
+      choices: [
+        { label:"Ask what 'review it first' means", response:{speaker:'rahul', text:"Wait, what do you mean 'review it first'? Can't I just start taking it?"} },
+        { label:"Just trust the doctor and move on", response:{speaker:'rahul', text:"Okay, I trust you, doctor. Whatever it takes to feel better."} },
+      ],
+    },
+    { // 2
+      title: "Insurance Roadblock",
+      eyebrow: "Scene 2 of 8 · Prior Authorization Request",
+      chat: [
+        {speaker:'narrator', text:"Before Rahul can pick up his prescription, his medicine has to clear one more checkpoint."},
+        {speaker:'doctor', text:"Dr. Patel's office submits a Prior Authorization, or 'PA', directly to Rahul's insurer — in this story, an illustrative payer called StarCare Health."},
+        {speaker:'narrator', text:"Provider → PA Request → Payer. No pharmacy is involved at this stage; this is a conversation between the clinic and the insurance company."},
+        {speaker:'priya', text:"Hi Rahul, I'm Priya — I work in healthcare operations. I help patients understand what happens behind the scenes with requests like this."},
+        {speaker:'priya', text:"Once a PA is approved, it's saved permanently on file for that medicine — so this isn't something you'll have to repeat every single refill."},
+      ],
+      choices: [
+        { label:"Why does insurance get a say at all?", response:{speaker:'rahul', text:"Why does the insurance company get to weigh in on what my doctor already decided?"} },
+        { label:"How long will this take?", response:{speaker:'rahul', text:"Okay... how long is this whole process going to take?"} },
+      ],
+    },
+    { // 3
+      title: "What Is PA?",
+      eyebrow: "Scene 3 of 8 · Priya Explains",
+      chat: [
+        {speaker:'priya', text:"Prior Authorization means your insurer wants to confirm a treatment is medically necessary and appropriate before it agrees to pay for it."},
+        {speaker:'priya', text:"It's not just red tape. For a fast-moving diagnosis like RA, delays in starting the right medicine can let joint damage progress — so getting the PA right, and getting it fast, actually matters for your health."},
+        {speaker:'priya', text:"You may also hear the term 'step therapy' — insurers sometimes want proof that lower-cost options were tried first before approving a more expensive drug like Humira."},
+        {speaker:'narrator', text:"According to the AMA's 2023 Prior Authorization Physician Survey, PA causes treatment delays in the majority of cases."},
+        {speaker:'priya', text:"That's exactly why I do this work — the paperwork is invisible to most patients, but it has real consequences if nobody manages it well."},
+      ],
+      choices: [
+        { label:"Ask about step therapy specifically", response:{speaker:'rahul', text:"So if I never tried a cheaper drug, could that be a problem for my approval?"} },
+        { label:"Ask what happens if it's delayed", response:{speaker:'rahul', text:"What actually happens to my joints if this gets delayed a few weeks?"} },
+      ],
+    },
+    { // 4
+      title: "Insurance Review",
+      eyebrow: "Scene 4 of 8 · Inside StarCare Health's Review",
+      chat: [
+        {speaker:'priya', text:"Let me walk you through what a reviewer at StarCare Health — again, our illustrative example payer — actually checks."},
+        {speaker:'priya', text:"First, eligibility: is Rahul actively covered, and is Humira part of his plan's drug list?"},
+        {speaker:'priya', text:"Second, clinical documentation: did Dr. Patel's office include exam notes, symptoms, and lab results supporting the diagnosis?"},
+        {speaker:'priya', text:"Third, the ICD-10 diagnosis code: does the billing code on the request actually match Rheumatoid Arthritis? A mismatch alone can trigger a denial."},
+        {speaker:'priya', text:"Fourth, step therapy history: has Rahul already tried and failed a required lower-cost medication, or does he qualify for an exception?"},
+        {speaker:'priya', text:"Each check exists to confirm the treatment is necessary, correctly coded, and consistent with the plan's rules — not to make things difficult on purpose."},
+      ],
+      choices: [
+        { label:"Ask which check is riskiest for Rahul", response:{speaker:'rahul', text:"Which one of those is most likely to trip me up?"} },
+        { label:"Ask who reviews this", response:{speaker:'rahul', text:"Is a real person reading all of this, or is it automatic?"} },
+      ],
+    },
+    { // 5
+      title: "Denial",
+      eyebrow: "Scene 5 of 8 · The Letter Arrives",
+      chat: [
+        {speaker:'narrator', text:"A week later, a letter arrives from StarCare Health."},
+        {speaker:'narrator', text:"'Request Denied: Step therapy documentation not on file.'"},
+        {speaker:'rahul', text:"Denied?! Does that mean I can't get the medicine at all?"},
+        {speaker:'priya', text:"No — take a breath. A denial isn't the end of the road, it's usually a missing-piece problem. Here, the office needs to document that you tried a required alternative first, or request an exception."},
+        {speaker:'priya', text:"On the system side, this kind of denial isn't free for anyone — resolving a PA denial typically costs a physician's office two or more staff hours in paperwork and follow-up calls."},
+        {speaker:'priya', text:"The good news: this specific gap is very fixable."},
+      ],
+      choices: [
+        { label:"Ask what happens next", response:{speaker:'rahul', text:"Okay. So what do we do now?"} },
+        { label:"Express frustration", response:{speaker:'rahul', text:"This feels so unfair — I just want to feel better."} },
+      ],
+    },
+    { // 6
+      title: "Appeal",
+      eyebrow: "Scene 6 of 8 · Building the Case",
+      chat: [
+        {speaker:'priya', text:"Let's build a strong appeal. Dr. Patel's office gathers your recent exam notes, lab results, and a record of any medications you've already tried."},
+        {speaker:'doctor', text:"Dr. Patel writes a Letter of Medical Necessity, explaining in clinical detail why Humira — and not a step-therapy alternative — is the right choice for Rahul right now."},
+        {speaker:'priya', text:"That letter, plus the supporting records, gets filed as a formal appeal to StarCare Health, referencing the original denial."},
+        {speaker:'rahul', text:"So we're basically re-arguing the case with more proof?"},
+        {speaker:'priya', text:"Exactly. Most appeals succeed when the missing piece is clearly filled in — this isn't about starting over, it's about completing the file."},
+      ],
+      choices: [
+        { label:"Ask how long the appeal takes", response:{speaker:'rahul', text:"How long until we hear back this time?"} },
+        { label:"Ask if this happens to everyone", response:{speaker:'rahul', text:"Does this whole denial-and-appeal thing happen to a lot of people?"} },
+      ],
+    },
+    { // 7
+      title: "Approval",
+      eyebrow: "Scene 7 of 8 · The Verdict",
+      chat: [
+        {speaker:'narrator', text:"Twelve days later, a new letter arrives from StarCare Health."},
+        {speaker:'narrator', text:"'Prior Authorization Approved. Reference #SC-884213.'"},
+        {speaker:'rahul', text:"It's approved! Wait — do I have to do this every time I refill it?"},
+        {speaker:'priya', text:"No. This approval is saved permanently on Rahul's file for Humira. Barring a plan change, he won't need a brand-new PA just to keep refilling this medicine."},
+        {speaker:'rahul', text:"That's a huge relief."},
+      ],
+      choices: [
+        { label:"Ask what would require a new PA later", response:{speaker:'rahul', text:"Is there anything that could make me need a new PA down the road?"} },
+        { label:"Just say thank you", response:{speaker:'rahul', text:"Priya, thank you for walking me through all of this."} },
+      ],
+    },
+    { // 8
+      title: "Takeaways",
+      eyebrow: "Scene 8 of 8 · Two Perspectives",
+      chat: [
+        {speaker:'narrator', text:"Two views on the same file: the patient's, and the system's."},
+        {speaker:'rahul', text:"What I learned: a denial isn't a final 'no' — it's usually a missing document. And once a PA is approved, it stays on file, so I'm not fighting this battle every month."},
+        {speaker:'priya', text:"On the system side, health systems track a few key numbers: denial rate — how often first requests are denied; appeal success rate — how often appeals overturn a denial; and resolution time — how many days from request to final answer."},
+        {speaker:'priya', text:"Watching those numbers is how clinics and payers find the friction points — like Rahul's missing step-therapy note — and fix the process for the next patient."},
+        {speaker:'narrator', text:"End of story. StarCare Health was an illustrative example throughout — real payers vary in their specific rules and timelines."},
+      ],
+      choices: [
+        { label:"Replay the story", response:null, action:'restart' },
+        { label:"Review Rahul's takeaway again", response:{speaker:'rahul', text:"The biggest lesson for me: ask questions early, and keep copies of everything."} },
+      ],
+    },
+  ];
+
+  // ---------- State ----------
+  let sceneIndex = 0;
+  let choiceMade = false;
+
+  const chatFeed = document.getElementById('chatFeed');
+  const choiceArea = document.getElementById('choiceArea');
+  const continueArea = document.getElementById('continueArea');
+  const sceneHeading = document.getElementById('sceneHeading');
+  const progressTrack = document.getElementById('progressTrack');
+  const progressLabel = document.getElementById('progressLabel');
+
+  function buildProgressTrack(){
+    progressTrack.innerHTML = '';
+    scenes.forEach((s, i) => {
+      const tab = document.createElement('div');
+      tab.className = 'tab' + (i < sceneIndex ? ' done' : (i === sceneIndex ? ' current' : ''));
+      tab.title = s.title;
+      progressTrack.appendChild(tab);
+    });
+    progressTrack.setAttribute('aria-valuenow', String(sceneIndex+1));
+    progressLabel.textContent = 'Step ' + (sceneIndex+1) + ' of ' + scenes.length + ' — ' + scenes[sceneIndex].title;
+  }
+
+  function clearNode(node){
+    while(node.firstChild){ node.removeChild(node.firstChild); }
+  }
+
+  function avatarFor(speaker){
+    const el = document.createElement('div');
+    if(speaker === 'rahul'){
+      el.className = 'avatar';
+      el.style.background = '#F2E9D8';
+      el.textContent = '👦';
+      el.setAttribute('aria-label','Rahul');
+    } else {
+      el.className = 'avatar';
+      el.style.background = '#DCEDE8';
+      el.textContent = '👧';
+      el.setAttribute('aria-label','Priya');
+    }
+    return el;
+  }
+
+  function appendMessage(msg){
+    if(msg.speaker === 'narrator' || msg.speaker === 'doctor'){
+      const p = document.createElement('p');
+      p.className = (msg.speaker === 'narrator' ? 'narrator-line' : 'doctor-line') + ' msg-in text-sm sm:text-[15px] px-2';
+      p.textContent = msg.text;
+      chatFeed.appendChild(p);
+      return;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'flex items-end gap-2 msg-in ' + (msg.speaker === 'priya' ? 'flex-row-reverse text-right' : '');
+
+    const av = avatarFor(msg.speaker);
+    row.appendChild(av);
+
+    const bubbleWrap = document.createElement('div');
+    bubbleWrap.className = 'max-w-[80%] flex flex-col ' + (msg.speaker === 'priya' ? 'items-end' : 'items-start');
+
+    const name = document.createElement('span');
+    name.className = 'text-[11px] font-semibold mb-1';
+    name.style.color = 'var(--ink-soft)';
+    name.textContent = msg.speaker === 'rahul' ? 'Rahul' : 'Priya · Healthcare Ops';
+    bubbleWrap.appendChild(name);
+
+    const bubble = document.createElement('div');
+    bubble.className = 'rounded-2xl px-4 py-2.5 text-sm sm:text-[15px] leading-snug ' + (msg.speaker === 'rahul' ? 'bubble-rahul' : 'bubble-priya');
+    bubble.textContent = msg.text;
+    bubbleWrap.appendChild(bubble);
+
+    row.appendChild(bubbleWrap);
+    chatFeed.appendChild(row);
+  }
+
+  function appendStamp(kind){
+    const wrap = document.createElement('div');
+    wrap.className = 'flex justify-center my-2 msg-in';
+    const stamp = document.createElement('div');
+    stamp.className = 'stamp ' + (kind === 'approve' ? 'stamp-approve' : 'stamp-deny');
+    stamp.textContent = kind === 'approve' ? 'Approved' : 'Denied';
+    wrap.appendChild(stamp);
+    chatFeed.appendChild(wrap);
+  }
+
+  function renderSceneHeading(scene){
+    clearNode(sceneHeading);
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'text-[11px] font-semibold tracking-wide uppercase';
+    eyebrow.style.color = 'var(--folder)';
+    eyebrow.textContent = scene.eyebrow;
+    const h2 = document.createElement('h2');
+    h2.className = 'font-display text-lg sm:text-xl font-bold';
+    h2.style.color = 'var(--ink)';
+    h2.textContent = scene.title;
+    sceneHeading.appendChild(eyebrow);
+    sceneHeading.appendChild(h2);
+  }
+
+  function renderChoices(scene){
+    clearNode(choiceArea);
+    clearNode(continueArea);
+    scene.choices.forEach(choice => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn rounded-full px-4 py-2 text-sm font-medium flex-1';
+      btn.textContent = choice.label;
+      btn.addEventListener('click', () => onChoiceSelected(choice));
+      choiceArea.appendChild(btn);
+    });
+  }
+
+  function onChoiceSelected(choice){
+    if(choiceMade) return;
+    choiceMade = true;
+    clearNode(choiceArea);
+
+    if(choice.action === 'restart'){
+      restartStory();
+      return;
+    }
+
+    if(choice.response){
+      appendMessage(choice.response);
+      // Denial/Approval stamp cues on relevant scenes
+      if(sceneIndex === 4){ appendStamp('deny'); }
+      if(sceneIndex === 6){ appendStamp('approve'); }
+      chatFeed.lastElementChild.scrollIntoView({behavior:'smooth', block:'end'});
+    }
+
+    renderContinue();
+  }
+
+  function renderContinue(){
+    clearNode(continueArea);
+    const btn = document.createElement('button');
+    btn.className = 'primary-btn rounded-full px-5 py-2.5 text-sm font-semibold w-full sm:w-auto';
+    btn.textContent = sceneIndex < scenes.length - 1 ? 'Continue →' : 'Finish';
+    btn.addEventListener('click', goNextScene);
+    continueArea.appendChild(btn);
+  }
+
+  function goNextScene(){
+    if(sceneIndex < scenes.length - 1){
+      sceneIndex += 1;
+      renderScene();
+    } else {
+      clearNode(continueArea);
+      const done = document.createElement('p');
+      done.className = 'text-center text-sm font-medium';
+      done.style.color = 'var(--teal-dark)';
+      done.textContent = "You've completed Rahul's file. Use 'Replay the story' above to go through it again.";
+      continueArea.appendChild(done);
+    }
+  }
+
+  function restartStory(){
+    sceneIndex = 0;
+    choiceMade = false;
+    renderScene();
+  }
+
+  function renderScene(){
+    choiceMade = false;
+    buildProgressTrack();
+    renderSceneHeading(scenes[sceneIndex]);
+    clearNode(chatFeed);
+    clearNode(continueArea);
+
+    scenes[sceneIndex].chat.forEach(msg => appendMessage(msg));
+    if(sceneIndex === 4){ appendStamp('deny'); }   // scene 5, index 4: Denial
+    if(sceneIndex === 6){ appendStamp('approve'); } // scene 7, index 6: Approval
+
+    renderChoices(scenes[sceneIndex]);
+  }
+
+  renderScene();
+})();
+</script>
+</body>
+</html>

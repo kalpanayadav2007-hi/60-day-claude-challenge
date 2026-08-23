@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Workflow Architect — Weekly Balance Board</title>
+<style>
+  :root{
+    --ink:#10121a;
+    --surface:#1a1e2b;
+    --surface-2:#212637;
+    --hairline:#333a52;
+    --paper:#ede7da;
+    --paper-dim:#a9a5ab;
+    --brass:#d98c4a;
+    --brass-bright:#f0a862;
+    --sage:#7c9885;
+    --steel:#6a8fbf;
+    --danger:#c0605a;
+    --radius:6px;
+    --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  }
+  [data-theme="light"]{
+    --ink:#f2ede1;
+    --surface:#ffffff;
+    --surface-2:#f6f2e8;
+    --hairline:#d9d1bd;
+    --paper:#1a1e2b;
+    --paper-dim:#5c5a53;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--sans);
+    line-height:1.5;
+    transition:background .3s ease, color .3s ease;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+  }
+  a{color:var(--brass-bright);}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+
+  /* ===== Top bar ===== */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:color-mix(in srgb, var(--ink) 88%, transparent);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--hairline);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);}
+  .brand b{color:var(--brass-bright);font-family:var(--serif);font-size:16px;letter-spacing:0;text-transform:none;}
+  .topbar-actions{display:flex;gap:8px;align-items:center;}
+  .btn{
+    font-family:var(--mono);font-size:12px;letter-spacing:.03em;
+    background:var(--surface-2);color:var(--paper);border:1px solid var(--hairline);
+    padding:8px 12px;border-radius:var(--radius);cursor:pointer;transition:.15s;
+  }
+  .btn:hover{border-color:var(--brass);color:var(--brass-bright);}
+  .btn:focus-visible, button:focus-visible, [tabindex]:focus-visible{outline:2px solid var(--brass-bright);outline-offset:2px;}
+  .btn.primary{background:var(--brass);color:#1a1305;border-color:var(--brass);}
+  .btn.primary:hover{background:var(--brass-bright);color:#1a1305;}
+
+  /* ===== Hero: departure board ===== */
+  .hero{padding:64px 0 40px;border-bottom:1px solid var(--hairline);}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--brass-bright);margin-bottom:14px;}
+  .hero h1{font-family:var(--serif);font-size:clamp(32px,5vw,54px);line-height:1.05;margin:0 0 16px;max-width:16ch;}
+  .hero p{color:var(--paper-dim);max-width:60ch;font-size:16px;margin-bottom:28px;}
+
+  .board{
+    background:var(--surface);border:1px solid var(--hairline);border-radius:8px;
+    padding:18px;overflow:hidden;
+  }
+  .board-head{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:.08em;padding-bottom:10px;border-bottom:1px solid var(--hairline);margin-bottom:8px;}
+  .flap-row{display:grid;grid-template-columns:110px 1fr 140px;gap:10px;padding:9px 4px;align-items:center;border-bottom:1px dashed var(--hairline);font-family:var(--mono);font-size:13px;}
+  .flap-row:last-child{border-bottom:none;}
+  .flap-track{font-weight:600;}
+  .track-college{color:var(--sage);}
+  .track-job{color:var(--brass-bright);}
+  .track-skill{color:var(--steel);}
+  .flap-status{text-align:right;color:var(--paper-dim);}
+  @keyframes flapIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+  .flap-row{animation:flapIn .5s ease both;}
+  .flap-row:nth-child(2){animation-delay:.05s;}
+  .flap-row:nth-child(3){animation-delay:.1s;}
+  .flap-row:nth-child(4){animation-delay:.15s;}
+  .flap-row:nth-child(5){animation-delay:.2s;}
+
+  /* ===== Section shell ===== */
+  section{padding:56px 0;border-bottom:1px solid var(--hairline);}
+  .section-label{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass-bright);margin-bottom:8px;}
+  h2{font-family:var(--serif);font-size:clamp(24px,3.4vw,34px);margin:0 0 8px;}
+  .section-sub{color:var(--paper-dim);max-width:65ch;margin-bottom:32px;}
+
+  /* ===== Weekly lane diagram (signature) ===== */
+  .lanes{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:20px;overflow-x:auto;}
+  .lane-grid{display:grid;grid-template-columns:120px repeat(7,1fr);min-width:760px;gap:1px;background:var(--hairline);}
+  .lane-cell{background:var(--surface);padding:10px 8px;font-size:12px;}
+  .lane-head{font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--paper-dim);font-size:11px;text-align:center;}
+  .lane-name{font-family:var(--serif);font-size:14px;display:flex;align-items:center;gap:8px;}
+  .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .dot-college{background:var(--sage);} .dot-job{background:var(--brass-bright);} .dot-skill{background:var(--steel);}
+  .block{border-radius:4px;padding:4px 6px;font-size:11px;line-height:1.3;color:#0e0e10;font-weight:600;cursor:default;}
+  .block-college{background:var(--sage);} .block-job{background:var(--brass-bright);} .block-skill{background:var(--steel);}
+  .block-empty{background:transparent;color:var(--paper-dim);font-weight:400;}
+
+  /* ===== Stage cards ===== */
+  .stage{
+    background:var(--surface);border:1px solid var(--hairline);border-radius:8px;
+    margin-bottom:16px;overflow:hidden;
+  }
+  .stage-head{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:18px 20px;cursor:pointer;user-select:none;
+  }
+  .stage-head:hover{background:var(--surface-2);}
+  .stage-title{display:flex;align-items:center;gap:14px;}
+  .stage-num{font-family:var(--mono);font-size:12px;color:var(--brass-bright);border:1px solid var(--brass);border-radius:3px;padding:2px 7px;}
+  .stage-title h3{font-family:var(--serif);font-size:19px;margin:0;}
+  .stage-time{font-family:var(--mono);font-size:11px;color:var(--paper-dim);white-space:nowrap;}
+  .chev{transition:transform .25s ease;color:var(--paper-dim);}
+  .stage.open .chev{transform:rotate(90deg);}
+  .stage-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+  .stage.open .stage-body{max-height:3400px;}
+  .stage-inner{padding:0 20px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;}
+  .field h4{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass-bright);margin:0 0 8px;}
+  .field ul{margin:0;padding-left:18px;color:var(--paper-dim);font-size:13.5px;}
+  .field li{margin-bottom:4px;}
+  .field p{margin:0;color:var(--paper-dim);font-size:13.5px;}
+  .tool-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--hairline);border-radius:20px;padding:4px 10px 4px 4px;font-size:12.5px;margin:2px 4px 2px 0;}
+  .tool-chip .rank{background:var(--brass);color:#1a1305;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);font-weight:700;}
+  .prompt-box{background:var(--surface-2);border:1px solid var(--hairline);border-left:3px solid var(--brass);border-radius:4px;padding:12px 14px;font-family:var(--mono);font-size:12.5px;color:var(--paper);position:relative;white-space:pre-wrap;}
+  .copy-btn{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:10px;background:var(--surface);border:1px solid var(--hairline);color:var(--paper-dim);border-radius:3px;padding:3px 7px;cursor:pointer;}
+  .copy-btn:hover{color:var(--brass-bright);border-color:var(--brass);}
+  .mistake{color:var(--danger);}
+  .checklist label{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--paper-dim);margin-bottom:6px;cursor:pointer;}
+  .checklist input{margin-top:3px;accent-color:var(--brass);}
+
+  /* ===== Decision tree ===== */
+  .tree{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:24px;}
+  .tree-q{font-family:var(--serif);font-size:16px;margin-bottom:10px;}
+  .tree-opts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .tree-opt{background:var(--surface-2);border:1px solid var(--hairline);color:var(--paper);padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;}
+  .tree-opt:hover{border-color:var(--brass);}
+  .tree-opt.chosen{background:var(--brass);color:#1a1305;border-color:var(--brass);}
+  .tree-result{font-size:13.5px;color:var(--paper-dim);border-top:1px dashed var(--hairline);padding-top:14px;display:none;}
+  .tree-result.show{display:block;}
+
+  /* ===== Comparison table ===== */
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--hairline);border-radius:8px;overflow:hidden;font-size:13.5px;}
+  th,td{padding:12px 14px;text-align:left;border-bottom:1px solid var(--hairline);}
+  th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--brass-bright);background:var(--surface-2);}
+  tr:last-child td{border-bottom:none;}
+
+  /* ===== Progress ===== */
+  .progress-wrap{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:20px;}
+  .progress-bar-track{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;margin:10px 0 6px;}
+  .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--sage),var(--brass-bright),var(--steel));width:0%;transition:width .4s ease;}
+  .progress-label{font-family:var(--mono);font-size:12px;color:var(--paper-dim);}
+
+  /* ===== Notes ===== */
+  textarea{
+    width:100%;min-height:120px;background:var(--surface-2);color:var(--paper);
+    border:1px solid var(--hairline);border-radius:6px;padding:12px;font-family:var(--sans);font-size:13.5px;resize:vertical;
+  }
+  textarea:focus-visible{outline:2px solid var(--brass-bright);}
+
+  /* ===== Grid helpers ===== */
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:20px;}
+  .card h3{font-family:var(--serif);font-size:17px;margin:0 0 10px;}
+  .card ul{margin:0;padding-left:18px;color:var(--paper-dim);font-size:13.5px;}
+  .card li{margin-bottom:5px;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--surface-2);border:1px solid var(--hairline);border-radius:20px;padding:3px 10px;margin:2px 4px 2px 0;color:var(--paper-dim);}
+
+  footer{padding:32px 0;text-align:center;color:var(--paper-dim);font-family:var(--mono);font-size:11.5px;}
+
+  @media print{
+    .topbar,.no-print,.copy-btn,.tree-opts{display:none !important;}
+    body{background:#fff;color:#111;}
+    .stage-body{max-height:none !important;}
+    section{break-inside:avoid;border-bottom:1px solid #ccc;}
+    .card,.stage,.board,.lanes,table{border:1px solid #999;background:#fff;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><b>AI Workflow Architect</b> · Weekly Balance Board</div>
+    <div class="topbar-actions no-print">
+      <button class="btn" id="themeToggle">Toggle light mode</button>
+      <button class="btn" id="printBtn">Print guide</button>
+      <button class="btn primary" id="resetBtn">Reset progress</button>
+    </div>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">College · Job Search · Skill-Building — one board, three tracks</div>
+    <h1>The board that keeps three tracks moving without collision.</h1>
+    <p>A complete weekly system for running GL Bajaj coursework, your AI/Full-Stack job search, and your Python + RAG skill-building side by side — mapped stage by stage, with the AI tools, prompts, and guardrails to run each block on autopilot.</p>
+
+    <div class="board">
+      <div class="board-head"><span>Live status</span><span>Updated automatically</span></div>
+      <div class="flap-row"><span class="flap-track track-college">College</span><span>Semester coursework, labs, CGPA 8.0 pace</span><span class="flap-status">ON TRACK</span></div>
+      <div class="flap-row"><span class="flap-track track-job">Job Search</span><span>Full-Stack (AI Focus) + AI Engineer Intern roles</span><span class="flap-status">ACTIVE</span></div>
+      <div class="flap-row"><span class="flap-track track-skill">Skill-Build</span><span>Python → RAG chatbot → agent project</span><span class="flap-status">IN PROGRESS</span></div>
+      <div class="flap-row"><span class="flap-track" style="color:var(--paper-dim)">Next milestone</span><span>Ship RAG chatbot to GitHub</span><span class="flap-status">DEPARTING SOON</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== WEEKLY LANE DIAGRAM ===== -->
+<section>
+  <div class="wrap">
+    <div class="section-label">Interactive diagram</div>
+    <h2>The weekly lane view</h2>
+    <p class="section-sub">Each track gets protected time so none silently loses. Hover a block to see what happens in that slot — this is your default week; adjust it to your real class timetable.</p>
+    <div class="lanes">
+      <div class="lane-grid" id="laneGrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STAGES ===== -->
+<section id="stages">
+  <div class="wrap">
+    <div class="section-label">End-to-end workflow</div>
+    <h2>Six stages, planning to review</h2>
+    <p class="section-sub">Click any stage to expand it. Each one includes objectives, tasks, the best AI tools for that block and why, prompt examples, best practices, common mistakes, expected output, and a time estimate.</p>
+    <div id="stageList"></div>
+  </div>
+</section>
+
+<!-- ===== DECISION TREE ===== -->
+<section>
+  <div class="wrap">
+    <div class="section-label">When tracks collide</div>
+    <h2>Decision tree: what wins today?</h2>
+    <p class="section-sub">Some days one track has to yield. Answer honestly — the board will tell you which block to protect and which to compress.</p>
+    <div class="tree">
+      <div class="tree-q">Is there a college deadline (exam, lab, submission) in the next 48 hours?</div>
+      <div class="tree-opts">
+        <div class="tree-opt" data-tree="1-yes">Yes</div>
+        <div class="tree-opt" data-tree="1-no">No</div>
+      </div>
+      <div class="tree-result" id="treeResult"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TOOL COMPARISON ===== -->
+<section>
+  <div class="wrap">
+    <div class="section-label">Tool comparison</div>
+    <h2>Planning & tracking tools, side by side</h2>
+    <p class="section-sub">You don't need all of these — pick one planner and one AI assistant, and keep the rest as backups.</p>
+    <table>
+      <thead><tr><th>Tool</th><th>Best for</th><th>Cost</th><th>Watch-out</th></tr></thead>
+      <tbody>
+        <tr><td>Google Calendar</td><td>Time-blocking the 3 lanes across the week</td><td>Free</td><td>Needs discipline to actually protect blocks</td></tr>
+        <tr><td>Notion (free tier)</td><td>Single dashboard for tasks + resume + project log</td><td>Free</td><td>Setup overhead if over-engineered</td></tr>
+        <tr><td>Claude / ChatGPT</td><td>Daily planning, prompt drafting, resume iteration, code help</td><td>Free tier usable</td><td>Verify claims before adding to resume</td></tr>
+        <tr><td>Todoist</td><td>Lightweight daily task list with recurring skill-build reminders</td><td>Free tier usable</td><td>Can fragment if used alongside Notion</td></tr>
+        <tr><td>GitHub Projects</td><td>Tracking the RAG chatbot build in public</td><td>Free</td><td>Only useful once a project actually exists</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===== PROGRESS TRACKING ===== -->
+<section>
+  <div class="wrap">
+    <div class="section-label">Progress</div>
+    <h2>This week's checklist</h2>
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progressText">0 of 0 checked</span></div>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NOTES ===== -->
+<section>
+  <div class="wrap">
+    <div class="section-label">Your notes</div>
+    <h2>Bookmarks & running notes</h2>
+    <p class="section-sub">Saved locally in this browser — jot adjustments, blockers, or wins for the weekly review.</p>
+    <textarea id="notesArea" placeholder="e.g. Tuesday DSA lab ran long — move Python practice to Wednesday morning..."></textarea>
+  </div>
+</section>
+
+<!-- ===== SUMMARY / CLOSE ===== -->
+<section>
+  <div class="wrap">
+    <div class="section-label">Wrap-up</div>
+    <h2>Workflow summary & what's next</h2>
+    <div class="grid2" style="margin-bottom:20px;">
+      <div class="card">
+        <h3>Workflow summary</h3>
+        <p style="color:var(--paper-dim);font-size:13.5px;">A recurring weekly loop: plan Sunday, protect three daily lanes (college / job search / skill-build), review Friday, adjust the following Sunday. The RAG chatbot is the single project that should exist on GitHub within 4–6 weeks of consistent lane time.</p>
+      </div>
+      <div class="card">
+        <h3>Recommended AI stack</h3>
+        <ul>
+          <li>Claude or ChatGPT — planning, prompt drafting, code debugging</li>
+          <li>GitHub Copilot or Claude in your editor — while building the RAG project</li>
+          <li>Jobscan — real ATS scoring once resume has project content</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Learning resources</h3>
+        <ul>
+          <li>freeCodeCamp Python for Beginners</li>
+          <li>LangChain official docs + quickstart</li>
+          <li>Deeplearning.ai short courses (RAG, LLM basics)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Communities</h3>
+        <ul>
+          <li>r/cscareerquestionsIndia, r/developersIndia</li>
+          <li>Local GDG / college AI-ML club at GL Bajaj</li>
+          <li>LangChain / Hugging Face Discord servers</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Search keywords</h3>
+        <div>
+          <span class="tag">AI engineer intern fresher India</span>
+          <span class="tag">RAG chatbot beginner project</span>
+          <span class="tag">LangChain quickstart</span>
+          <span class="tag">full stack AI focus resume</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Future automation opportunities</h3>
+        <ul>
+          <li>Auto-log daily lane completion into a spreadsheet via a script</li>
+          <li>Weekly digest email summarizing job applications sent</li>
+          <li>Calendar-to-task sync once the routine stabilizes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Additional AI prompts to keep handy</h3>
+      <div class="prompt-box" style="margin-bottom:10px;">Look at my week (paste calendar). Where are my three lanes — college, job search, skill-building — colliding or missing entirely? Suggest one fix.<button class="copy-btn" onclick="copyPrompt(this)">Copy</button></div>
+      <div class="prompt-box">I only got 30 minutes today instead of my planned skill-build block. Give me the single highest-leverage 30-minute task toward finishing my RAG chatbot.<button class="copy-btn" onclick="copyPrompt(this)">Copy</button></div>
+    </div>
+  </div>
+</section>
+
+<footer>AI WORKFLOW ARCHITECT — BUILT FOR ONE FOUNDER, THREE TRACKS, ONE WEEK AT A TIME</footer>
+
+<script>
+/* ---------- THEME ---------- */
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', ()=>{
+  const cur = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', cur==='light' ? '' : 'light');
+});
+document.getElementById('printBtn').addEventListener('click', ()=>window.print());
+
+/* ---------- LANE DIAGRAM ---------- */
+const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const lanes = [
+  {key:'college', name:'College', dot:'dot-college', blocks:['Classes + labs','Classes + labs','Classes + labs','Classes + labs','Classes + labs','Catch-up / assignments','—']},
+  {key:'job', name:'Job Search', dot:'dot-job', blocks:['Applications (45m)','Resume/portfolio (45m)','Applications (45m)','Networking/LinkedIn (30m)','Applications (45m)','Mock interview prep','Review pipeline']},
+  {key:'skill', name:'Skill-Build', dot:'dot-skill', blocks:['Python practice (1h)','RAG project (1h)','Python practice (1h)','RAG project (1h)','RAG project (1h)','Deep build session (2h)','Wrap + push to GitHub']},
+];
+const laneGrid = document.getElementById('laneGrid');
+let html = '<div class="lane-cell"></div>';
+days.forEach(d=> html += `<div class="lane-cell lane-head">${d}</div>`);
+lanes.forEach(l=>{
+  html += `<div class="lane-cell lane-name"><span class="dot ${l.dot}"></span>${l.name}</div>`;
+  l.blocks.forEach(b=>{
+    const empty = b==='—';
+    html += `<div class="lane-cell"><div class="block ${empty?'block-empty':'block-'+l.key}" title="${b}">${b}</div></div>`;
+  });
+});
+laneGrid.innerHTML = html;
+
+/* ---------- STAGES DATA ---------- */
+const stages = [
+  {
+    num:'01', title:'Sunday Planning — Set the Board', time:'30–40 min · weekly',
+    objectives:['Turn last week\\'s results into this week\\'s three lanes','Set one concrete target per track for the week'],
+    tasks:['Review last week\\'s checklist and notes','Check college calendar for exams/labs/deadlines','Pick this week\\'s job search target (e.g. 10 applications)','Pick this week\\'s skill-build milestone (e.g. finish RAG retrieval step)','Block the lane diagram into your real calendar'],
+    tools:[{name:'Google Calendar',why:'Free, syncs everywhere, best for visual time-blocking'},{name:'Claude/ChatGPT',why:'Turns a messy week into a structured plan in minutes'}],
+    alt:['Notion calendar view','Physical planner + weekly spread'],
+    prompt:"Here's what happened last week (paste notes). Help me set 3 concrete weekly targets — one for college, one for job search, one for my RAG chatbot skill-build — each achievable in the time I actually have.",
+    practices:['Plan on Sunday evening, not Monday morning','Keep weekly targets to exactly 3 — one per track','Write targets as outcomes, not hours (e.g. "chatbot answers 5 test questions", not "study 3 hours")'],
+    mistakes:['Planning an ideal week instead of your real week','Setting 5+ goals per track and finishing none'],
+    output:'A written weekly plan with 3 targets and a time-blocked calendar',
+  },
+  {
+    num:'02', title:'Daily Morning Setup', time:'10 min · daily',
+    objectives:['Confirm today\\'s lane blocks are still realistic','Remove decision fatigue before the day starts'],
+    tasks:['Glance at today\\'s 3 lane blocks from the calendar','Note any college deadline that needs priority (use decision tree below)','Set one single "must-finish" item for the day'],
+    tools:[{name:'Calendar widget / phone lock screen',why:'Zero-friction daily glance, no app switching'},{name:'Claude (voice or quick chat)',why:'Fast reprioritization when the day shifts unexpectedly'}],
+    alt:['Sticky note on desk', 'Todoist "Today" view'],
+    prompt:"My planned day was [paste 3 blocks]. [Describe what changed]. Reprioritize into a realistic version of today, keeping at least one action per track if possible.",
+    practices:['Do this before opening any distracting app','Keep it under 10 minutes — this is triage, not planning'],
+    mistakes:['Skipping this and defaulting to whichever track feels easiest that day'],
+    output:'One confirmed "must-finish" item and an adjusted daily lane plan',
+  },
+  {
+    num:'03', title:'College Block — Protect the Baseline', time:'Class hours + 30–60 min review',
+    objectives:['Maintain CGPA 8.0+ without letting it swallow the whole day','Turn lecture time into reusable notes with minimal extra effort'],
+    tasks:['Attend classes/labs as scheduled','Same-day quick review of lecture notes (15–20 min)','Log assignment deadlines into the weekly board immediately'],
+    tools:[{name:'Claude/ChatGPT',why:'Explains tricky DSA/CS concepts in plain language fast'},{name:'NotebookLM or similar note tool',why:'Turns lecture notes into quick summaries for revision'}],
+    alt:['GeeksforGeeks for CS fundamentals','YouTube course playlists for weak topics'],
+    prompt:"Explain [concept from today's class] simply, with one analogy and one short code example, at a level for a 2nd/3rd-year CS student.",
+    practices:['Review same-day, not before exams — it\\'s 5x faster','Never let job search bleed into class-designated hours'],
+    mistakes:['Using class time to browse job boards — protect this lane too'],
+    output:'Same-day reviewed notes + deadlines logged on the board',
+  },
+  {
+    num:'04', title:'Job Search Block — Applications & Resume', time:'30–45 min · daily',
+    objectives:['Keep a steady application pipeline for Full-Stack (AI Focus) and AI Engineer Intern roles','Iterate the resume only with strictly verified content'],
+    tasks:['Search and shortlist 3–5 relevant roles','Tailor resume bullet points to the specific JD (no invented skills)','Send applications and log them in a simple tracker','Once weekly: check real ATS score in Jobscan against a target JD'],
+    tools:[{name:'Job connectors (Indeed / Dice / ZipRecruiter)',why:'Direct access to live listings without leaving the workflow'},{name:'Claude/ChatGPT',why:'Rewrites resume bullets to match a JD using only real, verified skills'},{name:'Jobscan',why:'Actual ATS parser scoring, not a qualitative estimate'}],
+    alt:['LinkedIn Jobs','Naukri.com for India-specific listings'],
+    prompt:"Here is my verified skills list [paste] and this job description [paste]. Suggest resume bullet rewrites using ONLY skills from my list — flag anything in the JD I don't yet have instead of inventing a match.",
+    practices:['One tracker row per application: role, company, date, status','Never add a skill to the resume you haven\\'t actually used'],
+    mistakes:['Mass-applying without tailoring — lowers response rate','Letting Claude/AI infer or imply skills you don\\'t have'],
+    output:'3–5 tailored applications logged, resume updated with verified content only',
+  },
+  {
+    num:'05', title:'Skill-Build Block — Python & RAG Chatbot', time:'1–2 hrs · daily',
+    objectives:['Close the Python gap identified as critical for AI roles','Ship the first real project: a working RAG chatbot on GitHub'],
+    tasks:['Follow the sequence: Python basics (1–2 wks) → RAG chatbot → agent project','Commit code and push to GitHub at the end of every session, however small','Write 2–3 lines in a build log describing what changed and why'],
+    tools:[{name:'Claude/ChatGPT or Copilot',why:'Explains errors, reviews code, and accelerates the LangChain learning curve'},{name:'LangChain + a vector store (e.g. Chroma)',why:'Standard, well-documented stack for a first RAG project'}],
+    alt:['freeCodeCamp Python course','LlamaIndex as an alternative RAG framework'],
+    prompt:"I'm building a RAG chatbot with Python and LangChain. Here's my current code [paste] and this error [paste]. Explain the cause simply and give the minimal fix — don't rewrite the whole file.",
+    practices:['Ship small and often — a committed 20-line change beats an uncommitted perfect one','Keep the build log; it becomes real resume/interview material'],
+    mistakes:['Tutorial-hopping without ever writing original code','Perfectionism that delays the first GitHub push by weeks'],
+    output:'Incremental commits toward the RAG chatbot, visible on GitHub',
+  },
+  {
+    num:'06', title:'Friday Weekly Review', time:'20–30 min · weekly',
+    objectives:['Honestly assess what each lane actually achieved','Feed real results back into next Sunday\\'s plan'],
+    tasks:['Check off completed items in the weekly checklist','Note what got skipped and why (be specific, not vague)','Update resume/portfolio if the skill-build block produced something new','Write 2–3 lines in the notes box for next Sunday\\'s planning'],
+    tools:[{name:'Claude/ChatGPT',why:'Turns raw weekly notes into a clear pattern (e.g. "job search always slips on lab days")'}],
+    alt:['Simple end-of-week journal entry'],
+    prompt:"Here's my week: what got done and what didn't across college, job search, and skill-building [paste notes]. What pattern do you see, and what's the one change to make next week?",
+    practices:['Review even in weeks where little got done — the pattern is the value','Be specific about causes, not just outcomes'],
+    mistakes:['Skipping review after a bad week — that\\'s exactly when the pattern matters most'],
+    output:'An honest week-in-review that directly informs next week\\'s plan',
+  },
+];
+
+const stageList = document.getElementById('stageList');
+stages.forEach((s,i)=>{
+  const toolChips = s.tools.map(t=>`<span class="tool-chip" title="${t.why}"><span class="rank">${s.tools.indexOf(t)+1}</span>${t.name}</span>`).join('');
+  const el = document.createElement('div');
+  el.className = 'stage';
+  el.innerHTML = `
+    <div class="stage-head" data-idx="${i}">
+      <div class="stage-title"><span class="stage-num">${s.num}</span><h3>${s.title}</h3></div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span class="stage-time">${s.time}</span>
+        <span class="chev">&#9656;</span>
+      </div>
+    </div>
+    <div class="stage-body">
+      <div class="stage-inner">
+        <div class="field"><h4>Objectives</h4><ul>${s.objectives.map(o=>`<li>${o}</li>`).join('')}</ul></div>
+        <div class="field checklist"><h4>Tasks</h4>${s.tasks.map((t,ti)=>`<label><input type="checkbox" data-stage="${i}" data-task="${ti}"><span>${t}</span></label>`).join('')}</div>
+        <div class="field"><h4>Best AI tools & why</h4><div>${toolChips}</div></div>
+        <div class="field"><h4>Alternative tools</h4><ul>${s.alt.map(a=>`<li>${a}</li>`).join('')}</ul></div>
+        <div class="field" style="grid-column:1/-1;"><h4>Prompt example</h4><div class="prompt-box">${s.prompt}<button class="copy-btn" onclick="copyPrompt(this)">Copy</button></div></div>
+        <div class="field"><h4>Best practices</h4><ul>${s.practices.map(p=>`<li>${p}</li>`).join('')}</ul></div>
+        <div class="field"><h4>Common mistakes</h4><ul>${s.mistakes.map(m=>`<li class="mistake">${m}</li>`).join('')}</ul></div>
+        <div class="field"><h4>Expected output</h4><p>${s.output}</p></div>
+      </div>
+    </div>
+  `;
+  stageList.appendChild(el);
+});
+
+stageList.addEventListener('click', (e)=>{
+  const head = e.target.closest('.stage-head');
+  if(!head) return;
+  head.closest('.stage').classList.toggle('open');
+});
+document.querySelector('.stage')?.classList.add('open');
+stageList.firstElementChild?.classList.add('open');
+
+function copyPrompt(btn){
+  const text = btn.parentElement.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    const old = btn.textContent; btn.textContent='Copied';
+    setTimeout(()=>btn.textContent=old, 1200);
+  });
+}
+
+/* ---------- PROGRESS TRACKING (localStorage) ---------- */
+const STORAGE_KEY = 'awa_checklist_v1';
+const NOTES_KEY = 'awa_notes_v1';
+
+function loadState(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch(e){ return {}; }
+}
+function saveState(state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+function updateProgress(){
+  const boxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+  const checked = document.querySelectorAll('.checklist input[type="checkbox"]:checked');
+  const total = boxes.length;
+  const done = checked.length;
+  document.getElementById('progressText').textContent = `${done} of ${total} checked`;
+  document.getElementById('progressFill').style.width = total ? `${(done/total)*100}%` : '0%';
+}
+
+function initChecklist(){
+  const state = loadState();
+  document.querySelectorAll('.checklist input[type="checkbox"]').forEach(box=>{
+    const key = `${box.dataset.stage}-${box.dataset.task}`;
+    box.checked = !!state[key];
+    box.addEventListener('change', ()=>{
+      const s = loadState();
+      s[key] = box.checked;
+      saveState(s);
+      updateProgress();
+    });
+  });
+  updateProgress();
+}
+initChecklist();
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  if(confirm('Clear all checked tasks and notes for this board?')){
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(NOTES_KEY);
+    document.querySelectorAll('.checklist input[type="checkbox"]').forEach(b=>b.checked=false);
+    document.getElementById('notesArea').value='';
+    updateProgress();
+  }
+});
+
+/* ---------- NOTES (localStorage) ---------- */
+const notesArea = document.getElementById('notesArea');
+notesArea.value = localStorage.getItem(NOTES_KEY) || '';
+notesArea.addEventListener('input', ()=> localStorage.setItem(NOTES_KEY, notesArea.value));
+
+/* ---------- DECISION TREE ---------- */
+const treeSteps = {
+  '1-yes': {q:'Protect college time — is the deadline a lab report or an exam?',
+    opts:[{k:'2-lab',l:'Lab report'},{k:'2-exam',l:'Exam'}]},
+  '1-no': {q:'Good — is today a scheduled Skill-Build day (Tue/Wed/Thu/Fri/Sat)?',
+    opts:[{k:'3-yes',l:'Yes'},{k:'3-no',l:'No, it\\'s Sunday/Monday'}]},
+  '2-lab': {result:'Finish the lab first. Compress today\\'s job search block to 15 minutes (just check for replies) and skip skill-build — resume both tomorrow.'},
+  '2-exam': {result:'College wins fully today. Pause job search and skill-build entirely — one skipped day won\\'t break either track, but a missed exam has real cost.'},
+  '3-yes': {result:'Run the normal lane plan: college as scheduled, 30–45 min job search, 1–2 hr skill-build. No conflict today.'},
+  '3-no': {result:'Sunday is planning day and Monday has no skill-build block by design — use today for job search and the weekly plan instead.'},
+};
+const treeResult = document.getElementById('treeResult');
+document.querySelector('.tree').addEventListener('click', (e)=>{
+  const opt = e.target.closest('.tree-opt');
+  if(!opt) return;
+  const key = opt.dataset.tree;
+  const step = treeSteps[key];
+  document.querySelectorAll('.tree-opt').forEach(o=>o.classList.remove('chosen'));
+  opt.classList.add('chosen');
+  if(step.result){
+    treeResult.textContent = step.result;
+    treeResult.classList.add('show');
+    document.querySelectorAll('.tree-opts')[1] && (document.querySelectorAll('.tree-opts')[1].style.display='none');
+  } else {
+    treeResult.classList.remove('show');
+    let nextRow = document.getElementById('treeNext');
+    if(nextRow) nextRow.remove();
+    nextRow = document.createElement('div');
+    nextRow.id = 'treeNext';
+    nextRow.innerHTML = `<div class="tree-q" style="margin-top:14px;">${step.q}</div><div class="tree-opts">${step.opts.map(o=>`<div class="tree-opt" data-tree="${o.k}">${o.l}</div>`).join('')}</div>`;
+    document.querySelector('.tree').insertBefore(nextRow, treeResult);
+  }
+});
+</script>
+</body>
+</html>

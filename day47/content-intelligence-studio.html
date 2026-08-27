@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Intelligence Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080d18;
+  --bg-grad:#0a1120;
+  --panel:#101a2c;
+  --panel-2:#152238;
+  --panel-3:#1b2a45;
+  --ink:#eaf0f8;
+  --muted:#8a97ae;
+  --muted-2:#5f6c82;
+  --amber:#f5a623;
+  --amber-dim:#a8791f;
+  --teal:#4fd1c5;
+  --rose:#f16a6a;
+  --green:#5fd08a;
+  --border:rgba(255,255,255,0.08);
+  --border-soft:rgba(255,255,255,0.05);
+  --shadow:0 20px 60px -20px rgba(0,0,0,0.6);
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(1200px 600px at 15% -10%, rgba(79,209,197,0.08), transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, rgba(245,166,35,0.07), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+  line-height:1.5;
+}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;} }
+
+::selection{background:var(--amber);color:#1a1200;}
+a{color:var(--teal);}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+
+/* ---------- HEADER ---------- */
+header.top{
+  padding:44px 0 30px;
+  border-bottom:1px solid var(--border-soft);
+}
+.brand-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-mark{
+  width:44px;height:44px;border-radius:10px;
+  background:linear-gradient(135deg, var(--amber), #c97a15);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-weight:700;color:#1a1200;font-size:15px;
+  box-shadow:0 8px 24px -6px rgba(245,166,35,0.5);
+  flex-shrink:0;
+}
+.brand-name{font-family:'Fraunces',serif;font-size:20px;font-weight:600;letter-spacing:0.2px;}
+.brand-sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted-2);letter-spacing:0.08em;text-transform:uppercase;margin-top:2px;}
+.case-tag{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--teal);
+  border:1px solid rgba(79,209,197,0.3); background:rgba(79,209,197,0.06);
+  padding:6px 12px;border-radius:100px;letter-spacing:0.05em;
+}
+.hero-title{
+  font-family:'Fraunces',serif;font-weight:600;
+  font-size:clamp(30px,4.2vw,46px);line-height:1.08;letter-spacing:-0.01em;
+  margin-top:26px;max-width:820px;
+}
+.hero-title em{font-style:italic;color:var(--amber);font-weight:500;}
+.hero-desc{color:var(--muted);font-size:15.5px;max-width:620px;margin-top:14px;}
+
+/* ---------- SECTION LABELS ---------- */
+.section-label{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--muted-2);display:flex;align-items:center;gap:10px;margin-bottom:16px;
+}
+.section-label::before{content:"";width:16px;height:1px;background:var(--muted-2);}
+
+/* ---------- SETUP PANEL ---------- */
+.setup{padding:52px 0 10px;}
+.setup-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;}
+@media (max-width:880px){.setup-grid{grid-template-columns:1fr;}}
+.panel{
+  background:linear-gradient(180deg, var(--panel), var(--panel-2));
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:26px;box-shadow:var(--shadow);
+}
+.field-label{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:0.02em;margin-bottom:8px;display:block;}
+textarea, input[type=text]{
+  width:100%;background:#0a1425;border:1px solid var(--border);border-radius:10px;
+  color:var(--ink);padding:14px 16px;font-family:'Inter',sans-serif;font-size:14.5px;
+  resize:vertical;transition:border-color .15s ease, box-shadow .15s ease;
+}
+textarea{min-height:150px;line-height:1.6;}
+textarea:focus, input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(79,209,197,0.12);}
+.char-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted-2);text-align:right;margin-top:6px;}
+
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.chip{
+  padding:9px 14px;border-radius:100px;border:1px solid var(--border);background:#0a1425;
+  color:var(--muted);font-size:13px;cursor:pointer;transition:all .15s ease;font-weight:500;
+  user-select:none;
+}
+.chip:hover{border-color:rgba(79,209,197,0.4);color:var(--ink);}
+.chip.active{background:rgba(245,166,35,0.12);border-color:var(--amber);color:var(--amber);}
+
+.upload-zone{
+  border:1.5px dashed var(--border);border-radius:12px;padding:22px;text-align:center;
+  cursor:pointer;transition:all .15s ease;background:#0a1425;
+}
+.upload-zone:hover{border-color:var(--teal);background:rgba(79,209,197,0.04);}
+.upload-zone.has-file{border-style:solid;border-color:var(--teal);}
+.upload-zone svg{width:22px;height:22px;stroke:var(--muted-2);margin-bottom:8px;}
+.upload-zone .u-title{font-size:13.5px;color:var(--muted);font-weight:600;}
+.upload-zone .u-sub{font-size:11.5px;color:var(--muted-2);margin-top:4px;}
+.preview-img{max-width:100%;max-height:180px;border-radius:8px;margin-top:12px;border:1px solid var(--border);}
+.remove-file{font-size:11px;color:var(--rose);cursor:pointer;margin-top:8px;display:inline-block;font-weight:600;}
+
+.run-btn{
+  width:100%;margin-top:24px;padding:16px 20px;border-radius:11px;border:none;
+  background:linear-gradient(135deg, var(--amber), #d98a1e);color:#1a1200;
+  font-family:'Inter',sans-serif;font-weight:700;font-size:15px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 12px 30px -10px rgba(245,166,35,0.55);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.run-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 16px 36px -10px rgba(245,166,35,0.7);}
+.run-btn:disabled{opacity:0.55;cursor:not-allowed;}
+.run-btn .spinner{width:16px;height:16px;border:2px solid rgba(26,18,0,0.3);border-top-color:#1a1200;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.run-btn.loading .spinner{display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.desk-mini{display:flex;flex-direction:column;gap:10px;}
+.desk-mini-item{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);}
+.desk-mini-item .dot{width:6px;height:6px;border-radius:50%;background:var(--muted-2);flex-shrink:0;}
+
+/* ---------- ANALYST DESK (reviewer cards) ---------- */
+.desk-section{padding:56px 0 10px;display:none;}
+.desk-section.show{display:block;}
+.desk-layout{display:grid;grid-template-columns:1fr 340px;gap:22px;}
+@media (max-width:920px){.desk-layout{grid-template-columns:1fr;}}
+.reviewer-list{display:flex;flex-direction:column;gap:12px;}
+.rcard{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;
+  padding:18px 20px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;
+  transition:border-color .2s ease, background .2s ease;
+}
+.rcard.active{border-color:rgba(245,166,35,0.5);background:linear-gradient(180deg, var(--panel-2), var(--panel));}
+.rcard.done{border-color:rgba(95,208,138,0.35);}
+.rcard.error{border-color:rgba(241,106,106,0.45);}
+.rcase{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted-2);
+  width:56px;text-align:center;padding:6px 0;border-radius:6px;background:#0a1425;border:1px solid var(--border);
+}
+.rname{font-weight:600;font-size:14.5px;}
+.rrole{font-size:12px;color:var(--muted);margin-top:2px;}
+.rstatus{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.04em;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.rstatus .sdot{width:7px;height:7px;border-radius:50%;background:var(--muted-2);}
+.rstatus.pending{color:var(--muted-2);}
+.rstatus.running{color:var(--amber);}
+.rstatus.running .sdot{background:var(--amber);animation:pulse 1s infinite;}
+.rstatus.done{color:var(--green);}
+.rstatus.done .sdot{background:var(--green);}
+.rstatus.error{color:var(--rose);}
+.rstatus.error .sdot{background:var(--rose);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.rscore{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:var(--teal);min-width:44px;text-align:right;}
+
+.log-panel{
+  background:#070c16;border:1px solid var(--border);border-radius:12px;padding:18px 18px;
+  height:fit-content;max-height:520px;overflow-y:auto;
+}
+.log-title{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;}
+.log-line{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);padding:5px 0;border-bottom:1px solid var(--border-soft);display:flex;gap:8px;}
+.log-line:last-child{border-bottom:none;}
+.log-line .t{color:var(--muted-2);flex-shrink:0;}
+.log-line.ok .msg{color:var(--green);}
+.log-line.err .msg{color:var(--rose);}
+.log-line.info .msg{color:var(--teal);}
+
+.retry-banner{
+  background:rgba(241,106,106,0.08);border:1px solid rgba(241,106,106,0.3);border-radius:10px;
+  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;
+  font-size:13px;color:var(--rose);
+}
+.retry-banner button{
+  background:var(--rose);color:#210404;border:none;padding:8px 14px;border-radius:8px;font-weight:700;
+  font-size:12.5px;cursor:pointer;white-space:nowrap;
+}
+
+/* ---------- RESULTS ---------- */
+.results{padding:64px 0 100px;display:none;}
+.results.show{display:block;}
+.score-hero{
+  display:grid;grid-template-columns:220px 1fr;gap:36px;align-items:center;
+  background:linear-gradient(135deg, rgba(245,166,35,0.06), rgba(79,209,197,0.04));
+  border:1px solid var(--border);border-radius:18px;padding:36px;margin-bottom:22px;
+}
+@media (max-width:700px){.score-hero{grid-template-columns:1fr;text-align:center;}}
+.gauge-wrap{position:relative;width:200px;height:200px;margin:0 auto;}
+.gauge-num{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.gauge-num .n{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:44px;line-height:1;}
+.gauge-num .l{font-size:10.5px;color:var(--muted-2);text-transform:uppercase;letter-spacing:0.1em;margin-top:6px;}
+.exec-summary h3{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:10px;}
+.exec-summary p{color:var(--muted);font-size:14.5px;line-height:1.7;}
+
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:28px;}
+.cat-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.cat-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.cat-name{font-size:13px;font-weight:600;color:var(--ink);}
+.cat-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px;}
+.bar-track{height:6px;background:#0a1425;border-radius:100px;overflow:hidden;margin-top:8px;}
+.bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg, var(--teal), var(--amber));transition:width 1s ease;}
+.cat-verdict{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid var(--border-soft);padding-bottom:0;}
+.tab-btn{
+  padding:11px 16px;font-size:13px;font-weight:600;color:var(--muted);background:transparent;border:none;
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .15s ease;
+}
+.tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadein .25s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+.report-block{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:16px;}
+.report-block h4{font-family:'Fraunces',serif;font-size:16.5px;font-weight:600;margin-bottom:12px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.report-block h4 .ic{color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:13px;}
+.report-block p{color:var(--muted);font-size:14px;line-height:1.75;white-space:pre-wrap;}
+.blist{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.blist li{font-size:13.5px;color:var(--muted);padding-left:20px;position:relative;line-height:1.6;}
+.blist.strength li::before{content:"+";position:absolute;left:0;color:var(--green);font-weight:700;}
+.blist.weakness li::before{content:"–";position:absolute;left:0;color:var(--rose);font-weight:700;}
+.blist.opp li::before{content:"→";position:absolute;left:0;color:var(--teal);font-weight:700;}
+.blist.plain li::before{content:"•";position:absolute;left:0;color:var(--amber);}
+
+.rewrite-box{
+  background:#0a1425;border:1px solid var(--border);border-radius:10px;padding:20px;
+  font-size:14.5px;line-height:1.8;color:var(--ink);white-space:pre-wrap;font-family:'Inter',sans-serif;
+  margin-top:8px;position:relative;
+}
+.copy-btn{
+  position:absolute;top:14px;right:14px;background:var(--panel-3);border:1px solid var(--border);
+  color:var(--muted);font-size:11px;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;
+}
+.copy-btn:hover{color:var(--teal);border-color:var(--teal);}
+
+.hook-item{background:#0a1425;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;font-size:14px;display:flex;gap:12px;align-items:flex-start;}
+.hook-num{font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:700;font-size:12px;margin-top:2px;}
+
+.checklist{display:flex;flex-direction:column;gap:10px;}
+.check-item{display:flex;align-items:flex-start;gap:12px;font-size:13.5px;color:var(--muted);padding:12px 14px;background:#0a1425;border-radius:8px;border:1px solid var(--border-soft);}
+.check-item .box{width:16px;height:16px;border:1.5px solid var(--teal);border-radius:4px;flex-shrink:0;margin-top:1px;}
+
+.estimate-badge{
+  display:inline-flex;align-items:center;gap:8px;background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.3);
+  color:var(--amber);padding:6px 12px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;margin-bottom:14px;
+}
+
+.ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media (max-width:700px){.ba-grid{grid-template-columns:1fr;}}
+.ba-col{background:#0a1425;border-radius:10px;padding:16px;border:1px solid var(--border-soft);}
+.ba-col .lab{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+.ba-col.before .lab{color:var(--rose);}
+.ba-col.after .lab{color:var(--green);}
+
+.deep-prompt{
+  background:#0a1425;border:1px dashed var(--border);border-radius:8px;padding:12px 14px;font-size:13px;
+  color:var(--muted);margin-bottom:10px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:border-color .15s ease;
+}
+.deep-prompt:hover{border-color:var(--teal);color:var(--ink);}
+
+footer{padding:30px 0 60px;text-align:center;color:var(--muted-2);font-size:12px;}
+.err-box{background:rgba(241,106,106,0.08);border:1px solid rgba(241,106,106,0.3);border-radius:10px;padding:16px;color:var(--rose);font-size:13px;margin-top:14px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand-row">
+      <div class="brand">
+        <div class="brand-mark">CIS</div>
+        <div>
+          <div class="brand-name">Content Intelligence Studio</div>
+          <div class="brand-sub">AI Analyst Desk</div>
+        </div>
+      </div>
+      <div class="case-tag" id="caseTag">CASE FILE — UNOPENED</div>
+    </div>
+    <h1 class="hero-title">Five specialist reviewers.<br>One <em>brutally honest</em> verdict on your post.</h1>
+    <p class="hero-desc">Submit your LinkedIn caption. A panel of AI reviewers — hook, structure, algorithm fit, voice, and engagement strategy — will interrogate it live, then a chief editor synthesizes the case into a full report with rewrites, alt hooks, and a publishing checklist.</p>
+  </header>
+
+  <!-- ================= SETUP ================= -->
+  <section class="setup" id="setupSection">
+    <div class="section-label">01 — Submit the case</div>
+    <div class="setup-grid">
+      <div class="panel">
+        <label class="field-label">Paste your content</label>
+        <textarea id="contentInput" placeholder="Paste your LinkedIn caption here...">Left my 9-5 job to become a solopreneur. 6 months later, here's what nobody tells you:
+
+1. It's not about hustle, it's about consistency
+2. Your network is your net worth
+3. Failure is just feedback
+
+The journey has been incredible and I'm grateful for every step. If you're thinking about taking the leap, DM me!
+
+#entrepreneurship #hustle #mindset #growth #success #motivation</textarea>
+        <div class="char-count" id="charCount">0 characters</div>
+
+        <div style="margin-top:20px;">
+          <label class="field-label">Optional: attach an image (graphic, screenshot, thumbnail)</label>
+          <div class="upload-zone" id="uploadZone">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4M4 20h16"/></svg>
+            <div class="u-title">Click to upload image</div>
+            <div class="u-sub">PNG or JPG — analyzed directly by Claude's vision</div>
+            <input type="file" id="fileInput" accept="image/png,image/jpeg" style="display:none;">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <label class="field-label">Content type</label>
+        <div class="chip-row" id="typeChips">
+          <div class="chip active" data-val="Social media post/caption">Social post/caption</div>
+          <div class="chip" data-val="Video script/transcript">Video script</div>
+          <div class="chip" data-val="Blog/article">Blog/article</div>
+          <div class="chip" data-val="Thumbnail or image">Thumbnail/image</div>
+        </div>
+
+        <label class="field-label">Platform</label>
+        <div class="chip-row" id="platformChips">
+          <div class="chip active" data-val="LinkedIn">LinkedIn</div>
+          <div class="chip" data-val="Instagram">Instagram</div>
+          <div class="chip" data-val="YouTube">YouTube</div>
+          <div class="chip" data-val="Twitter/X">Twitter/X</div>
+        </div>
+
+        <label class="field-label">Primary goal</label>
+        <div class="chip-row" id="goalChips">
+          <div class="chip active" data-val="Grow followers/reach">Grow followers</div>
+          <div class="chip" data-val="Drive engagement (likes/comments)">Drive engagement</div>
+          <div class="chip" data-val="Get hired/build credibility">Build credibility</div>
+          <div class="chip" data-val="Sell a product/service">Sell product/service</div>
+        </div>
+
+        <label class="field-label">Review intensity</label>
+        <div class="chip-row" id="critChips">
+          <div class="chip active" data-val="Brutally honest (VC-analyst style, no sugarcoating)">Brutal</div>
+          <div class="chip" data-val="Balanced (honest but constructive)">Balanced</div>
+          <div class="chip" data-val="Encouraging (gentle, beginner-friendly)">Encouraging</div>
+        </div>
+
+        <button class="run-btn" id="runBtn">
+          <span class="spinner"></span>
+          <span id="runBtnLabel">Open the case — Run full review</span>
+        </button>
+        <div id="setupError"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DESK / LIVE REVIEW ================= -->
+  <section class="desk-section" id="deskSection">
+    <div class="section-label">02 — The desk is reviewing</div>
+    <div class="desk-layout">
+      <div class="reviewer-list" id="reviewerList"></div>
+      <div class="log-panel">
+        <div class="log-title">Live activity log</div>
+        <div id="logLines"></div>
+      </div>
+    </div>
+    <div id="retrySlot"></div>
+  </section>
+
+  <!-- ================= RESULTS ================= -->
+  <section class="results" id="resultsSection">
+    <div class="section-label">03 — Final report</div>
+
+    <div class="score-hero">
+      <div class="gauge-wrap">
+        <svg viewBox="0 0 200 200" width="200" height="200">
+          <circle cx="100" cy="100" r="86" fill="none" stroke="#0a1425" stroke-width="14"/>
+          <circle id="gaugeCircle" cx="100" cy="100" r="86" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="540" stroke-dashoffset="540" transform="rotate(-90 100 100)" style="transition:stroke-dashoffset 1.4s cubic-bezier(.16,1,.3,1);"/>
+          <defs><linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4fd1c5"/><stop offset="100%" stop-color="#f5a623"/></linearGradient></defs>
+        </svg>
+        <div class="gauge-num"><div class="n" id="overallScoreNum">–</div><div class="l">Content Health</div></div>
+      </div>
+      <div class="exec-summary">
+        <h3>Executive Summary</h3>
+        <p id="execSummaryText">Awaiting review…</p>
+      </div>
+    </div>
+
+    <div class="cat-grid" id="catGrid"></div>
+
+    <div class="tabs" id="tabBar">
+      <button class="tab-btn active" data-tab="health">Health Report</button>
+      <button class="tab-btn" data-tab="improve">Top Improvements</button>
+      <button class="tab-btn" data-tab="rewrite">Rewrite</button>
+      <button class="tab-btn" data-tab="hooks">Alt Hooks</button>
+      <button class="tab-btn" data-tab="checklist">Checklist</button>
+      <button class="tab-btn" data-tab="performance">Performance</button>
+      <button class="tab-btn" data-tab="deeper">Go Deeper</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-health">
+      <div class="report-block"><h4><span class="ic">◆</span> Content Health Report</h4><p id="healthReportText"></p></div>
+    </div>
+    <div class="tab-panel" id="tab-improve">
+      <div class="report-block"><h4><span class="ic">◆</span> Highest-Impact Improvements</h4><ul class="blist opp" id="improveList"></ul></div>
+    </div>
+    <div class="tab-panel" id="tab-rewrite">
+      <div class="report-block">
+        <h4><span class="ic">◆</span> Chief Editor Rewrite</h4>
+        <div class="rewrite-box" id="rewriteText"><button class="copy-btn" id="copyRewrite">Copy</button></div>
+      </div>
+      <div class="report-block ba-grid" style="display:grid;">
+        <div class="ba-col before"><div class="lab">Before</div><div id="beforeText" style="font-size:13px;color:var(--muted);line-height:1.7;"></div></div>
+        <div class="ba-col after"><div class="lab">After</div><div id="afterText" style="font-size:13px;color:var(--muted);line-height:1.7;"></div></div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-hooks">
+      <div class="report-block"><h4><span class="ic">◆</span> Alternative Hooks &amp; Openers</h4><div id="hooksList"></div></div>
+    </div>
+    <div class="tab-panel" id="tab-checklist">
+      <div class="report-block"><h4><span class="ic">◆</span> Publishing Checklist</h4><div class="checklist" id="checklistList"></div></div>
+    </div>
+    <div class="tab-panel" id="tab-performance">
+      <div class="report-block">
+        <h4><span class="ic">◆</span> Predicted Performance Potential</h4>
+        <div class="estimate-badge">⚠ AI estimate — not a guarantee</div>
+        <p id="performanceText"></p>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-deeper">
+      <div class="report-block"><h4><span class="ic">◆</span> Prompts for Deeper Optimization</h4><div id="deeperList"></div></div>
+    </div>
+  </section>
+
+  <footer>Content Intelligence Studio — analysis generated live by Claude. Treat scores and predictions as directional judgment, not fact.</footer>
+</div>
+
+<script>
+// ---------------- STATE ----------------
+const state = {
+  contentType: "Social media post/caption",
+  platform: "LinkedIn",
+  goal: "Grow followers/reach",
+  intensity: "Brutally honest (VC-analyst style, no sugarcoating)",
+  imageBase64: null,
+  imageMediaType: null,
+  reviewerOutputs: {},
+  running: false
+};
+
+const REVIEWERS = [
+  {
+    id: "hook",
+    code: "LC-01",
+    name: "Hook & Scroll-Stop Analyst",
+    role: "Judges whether the first 2 lines earn attention before 'see more'",
+    system: (ctx) => `You are a ruthless scroll-stop analyst who has studied millions of ${ctx.platform} posts. Your only job: judge whether the opening lines of this ${ctx.contentType.toLowerCase()} would actually stop someone mid-scroll and earn a click on "see more". You care about specificity, tension, curiosity gaps, and pattern interrupts — and you have zero patience for generic openers, humblebrags, or clichés. Review intensity requested: ${ctx.intensity}. Match that tone exactly in your VERDICT line. Respond ONLY using this exact plain-text format, no markdown, no extra commentary:
+##SCORE##
+<a single integer 0-100>
+##VERDICT##
+<one punchy sentence>
+##STRENGTHS##
+- <bullet>
+- <bullet>
+##WEAKNESSES##
+- <bullet>
+- <bullet>
+##OPPORTUNITY##
+- <the single highest-leverage fix for the hook specifically>`
+  },
+  {
+    id: "structure",
+    code: "LC-02",
+    name: "Structure & Readability Auditor",
+    role: "Checks formatting, line breaks, skimmability, and length",
+    system: (ctx) => `You are a meticulous readability auditor specializing in ${ctx.platform} formatting mechanics (line-break rhythm, whitespace, list use, mobile skimmability, ideal length for the platform and goal of "${ctx.goal}"). Review intensity requested: ${ctx.intensity}. Match that tone in your VERDICT. Respond ONLY using this exact plain-text format, no markdown, no extra commentary:
+##SCORE##
+<a single integer 0-100>
+##VERDICT##
+<one punchy sentence>
+##STRENGTHS##
+- <bullet>
+- <bullet>
+##WEAKNESSES##
+- <bullet>
+- <bullet>
+##OPPORTUNITY##
+- <the single highest-leverage structural fix>`
+  },
+  {
+    id: "algo",
+    code: "LC-03",
+    name: "Platform Algorithm Fit Specialist",
+    role: "Evaluates fit with how the platform's distribution actually works",
+    system: (ctx) => `You are a platform-mechanics specialist who reverse-engineers how ${ctx.platform}'s algorithm actually distributes content in 2026 (dwell time, early comments, hashtag usage/misuse, native vs external links, reshares, format signals). Judge this ${ctx.contentType.toLowerCase()} strictly on distribution mechanics, not vibes. Review intensity requested: ${ctx.intensity}. Match that tone in your VERDICT. Respond ONLY using this exact plain-text format, no markdown, no extra commentary:
+##SCORE##
+<a single integer 0-100>
+##VERDICT##
+<one punchy sentence>
+##STRENGTHS##
+- <bullet>
+- <bullet>
+##WEAKNESSES##
+- <bullet>
+- <bullet>
+##OPPORTUNITY##
+- <the single highest-leverage algorithm-fit fix>`
+  },
+  {
+    id: "voice",
+    code: "LC-04",
+    name: "Voice, Credibility & Authenticity Reviewer",
+    role: "Hunts for clichés, corporate-speak, and unverified claims",
+    system: (ctx) => `You are a skeptical editor who has read ten thousand ${ctx.platform} posts and instantly spots recycled clichés, humble-brag phrasing, vague corporate-speak, and claims with no evidence behind them. Judge this ${ctx.contentType.toLowerCase()}'s voice, specificity, and credibility. Review intensity requested: ${ctx.intensity}. Match that tone in your VERDICT — if intensity is "brutal", name the actual clichés verbatim in your weaknesses. Respond ONLY using this exact plain-text format, no markdown, no extra commentary:
+##SCORE##
+<a single integer 0-100>
+##VERDICT##
+<one punchy sentence>
+##STRENGTHS##
+- <bullet>
+- <bullet>
+##WEAKNESSES##
+- <bullet>
+- <bullet>
+##OPPORTUNITY##
+- <the single highest-leverage voice/credibility fix>`
+  },
+  {
+    id: "engagement",
+    code: "LC-05",
+    name: "Engagement & CTA Strategist",
+    role: "Judges comment-bait quality, CTA clarity, and goal alignment",
+    system: (ctx) => `You are an engagement strategist judging whether this ${ctx.contentType.toLowerCase()} will actually drive the founder's stated goal of "${ctx.goal}" on ${ctx.platform} — specifically the quality of any call-to-action, whether it invites genuine comments/shares, and whether it's aligned to the goal or just performative. Review intensity requested: ${ctx.intensity}. Match that tone in your VERDICT. Respond ONLY using this exact plain-text format, no markdown, no extra commentary:
+##SCORE##
+<a single integer 0-100>
+##VERDICT##
+<one punchy sentence>
+##STRENGTHS##
+- <bullet>
+- <bullet>
+##WEAKNESSES##
+- <bullet>
+- <bullet>
+##OPPORTUNITY##
+- <the single highest-leverage engagement/CTA fix>`
+  }
+];
+
+// ---------------- DOM HELPERS ----------------
+const $ = (id) => document.getElementById(id);
+function setupChips(containerId, stateKey){
+  const el = $(containerId);
+  el.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      el.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      state[stateKey] = chip.dataset.val;
+    });
+  });
+}
+setupChips('typeChips','contentType');
+setupChips('platformChips','platform');
+setupChips('goalChips','goal');
+setupChips('critChips','intensity');
+
+const contentInput = $('contentInput');
+function updateCharCount(){ $('charCount').textContent = contentInput.value.length + ' characters'; }
+contentInput.addEventListener('input', updateCharCount);
+updateCharCount();
+
+// Upload
+const uploadZone = $('uploadZone');
+const fileInput = $('fileInput');
+uploadZone.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const dataUrl = ev.target.result;
+    state.imageBase64 = dataUrl.split(',')[1];
+    state.imageMediaType = file.type;
+    uploadZone.classList.add('has-file');
+    uploadZone.innerHTML = `<img class="preview-img" src="${dataUrl}"><div class="remove-file" id="removeFile">Remove image</div>`;
+    $('removeFile').addEventListener('click', (ev2)=>{
+      ev2.stopPropagation();
+      state.imageBase64 = null; state.imageMediaType = null;
+      uploadZone.classList.remove('has-file');
+      uploadZone.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4M4 20h16"/></svg><div class="u-title">Click to upload image</div><div class="u-sub">PNG or JPG — analyzed directly by Claude's vision</div>`;
+    });
+  };
+  reader.readAsDataURL(file);
+});
+
+// Log
+function log(msg, type){
+  const line = document.createElement('div');
+  line.className = 'log-line ' + (type||'');
+  const t = new Date().toLocaleTimeString('en-US',{hour12:false});
+  line.innerHTML = `<span class="t">${t}</span><span class="msg">${msg}</span>`;
+  $('logLines').appendChild(line);
+  $('logLines').parentElement.scrollTop = $('logLines').parentElement.scrollHeight;
+}
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    $('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------------- CLAUDE API ----------------
+async function callClaude(systemPrompt, userText, includeImage){
+  const content = [];
+  if(includeImage && state.imageBase64){
+    content.push({ type:"image", source:{ type:"base64", media_type: state.imageMediaType, data: state.imageBase64 } });
+  }
+  content.push({ type:"text", text: userText });
+
+  const body = {
+    model: "claude-sonnet-4-6",
+    max_tokens: 1400,
+    system: systemPrompt,
+    messages: [{ role:"user", content }]
+  };
+
+  const maxRetries = 3;
+  let lastErr = null;
+  for(let attempt=0; attempt<maxRetries; attempt++){
+    try{
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(body)
+      });
+      if(!res.ok){
+        const errText = await res.text().catch(()=> '');
+        throw new Error(`API error ${res.status}: ${errText.slice(0,200)}`);
+      }
+      const data = await res.json();
+      const textBlocks = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text);
+      const full = textBlocks.join("\n").trim();
+      if(!full) throw new Error("Empty response from model");
+      return full;
+    }catch(err){
+      lastErr = err;
+      if(attempt < maxRetries-1){
+        log(`Retrying after error: ${err.message}`, 'err');
+        await new Promise(r=>setTimeout(r, 700 * Math.pow(2, attempt)));
+      }
+    }
+  }
+  throw lastErr;
+}
+
+// ---------------- PARSER ----------------
+function parseSections(raw){
+  const out = {};
+  const re = /##([A-Z_]+)##/g;
+  let match; const marks = [];
+  while((match = re.exec(raw)) !== null){ marks.push({key: match[1], idx: match.index, end: re.lastIndex}); }
+  for(let i=0;i<marks.length;i++){
+    const start = marks[i].end;
+    const end = (i+1<marks.length) ? marks[i+1].idx : raw.length;
+    out[marks[i].key] = raw.slice(start, end).trim();
+  }
+  return out;
+}
+function bulletsToArray(text){
+  if(!text) return [];
+  return text.split('\n').map(l=>l.replace(/^[-•*]\s*/,'').trim()).filter(l=>l.length>0);
+}
+
+// ---------------- RENDER REVIEWER CARDS ----------------
+function renderReviewerCards(){
+  const list = $('reviewerList');
+  list.innerHTML = '';
+  REVIEWERS.forEach(r=>{
+    const card = document.createElement('div');
+    card.className = 'rcard';
+    card.id = 'card-'+r.id;
+    card.innerHTML = `
+      <div class="rcase">${r.code}</div>
+      <div>
+        <div class="rname">${r.name}</div>
+        <div class="rrole">${r.role}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="rstatus pending" id="status-${r.id}"><span class="sdot"></span>Pending</div>
+        <div class="rscore" id="score-${r.id}">–</div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+function setReviewerStatus(id, status, score){
+  const card = $('card-'+id);
+  const statusEl = $('status-'+id);
+  card.classList.remove('active','done','error');
+  statusEl.classList.remove('pending','running','done','error');
+  if(status==='running'){ card.classList.add('active'); statusEl.classList.add('running'); statusEl.innerHTML='<span class="sdot"></span>Reviewing…'; }
+  else if(status==='done'){ card.classList.add('done'); statusEl.classList.add('done'); statusEl.innerHTML='<span class="sdot"></span>Filed'; $('score-'+id).textContent = score!=null? score : '–'; }
+  else if(status==='error'){ card.classList.add('error'); statusEl.classList.add('error'); statusEl.innerHTML='<span class="sdot"></span>Failed'; }
+  else { statusEl.classList.add('pending'); statusEl.innerHTML='<span class="sdot"></span>Pending'; }
+}
+
+// ---------------- PIPELINE ----------------
+async function runPipeline(){
+  if(state.running) return;
+  const content = contentInput.value.trim();
+  if(!content && !state.imageBase64){
+    $('setupError').innerHTML = `<div class="err-box">Add some content or an image before opening the case.</div>`;
+    return;
+  }
+  $('setupError').innerHTML = '';
+  state.running = true;
+  state.reviewerOutputs = {};
+
+  const runBtn = $('runBtn');
+  runBtn.disabled = true; runBtn.classList.add('loading');
+  $('runBtnLabel').textContent = 'Reviewing…';
+  $('caseTag').textContent = 'CASE FILE — IN REVIEW';
+
+  $('deskSection').classList.add('show');
+  $('resultsSection').classList.remove('show');
+  $('logLines').innerHTML = '';
+  $('retrySlot').innerHTML = '';
+  renderReviewerCards();
+  $('deskSection').scrollIntoView({behavior:'smooth', block:'start'});
+
+  log(`Case opened: ${state.contentType} for ${state.platform}, goal: ${state.goal}`, 'info');
+
+  const ctx = { contentType: state.contentType, platform: state.platform, goal: state.goal, intensity: state.intensity };
+  const userText = `CONTENT TYPE: ${state.contentType}\nPLATFORM: ${state.platform}\nFOUNDER'S STATED GOAL: ${state.goal}\n\n--- CONTENT TO REVIEW ---\n${content || '(No text provided — analyze the attached image directly.)'}`;
+
+  let pipelineFailed = false;
+
+  for(const reviewer of REVIEWERS){
+    setReviewerStatus(reviewer.id, 'running');
+    log(`${reviewer.code} — ${reviewer.name} is reviewing the case...`);
+    try{
+      const raw = await callClaude(reviewer.system(ctx), userText, true);
+      const parsed = parseSections(raw);
+      state.reviewerOutputs[reviewer.id] = parsed;
+      const scoreNum = parseInt((parsed.SCORE||'').match(/\d+/)?.[0] || '0', 10);
+      setReviewerStatus(reviewer.id, 'done', scoreNum);
+      log(`${reviewer.code} filed their verdict — score ${scoreNum}/100`, 'ok');
+    }catch(err){
+      setReviewerStatus(reviewer.id, 'error');
+      log(`${reviewer.code} failed: ${err.message}`, 'err');
+      pipelineFailed = true;
+      showRetryBanner();
+      break;
+    }
+  }
+
+  if(pipelineFailed){
+    state.running = false;
+    runBtn.disabled = false; runBtn.classList.remove('loading');
+    $('runBtnLabel').textContent = 'Open the case — Run full review';
+    return;
+  }
+
+  log('All reviewer verdicts filed. Escalating to Chief Editor for synthesis...', 'info');
+  try{
+    await runSynthesis(ctx, userText, content);
+    log('Final report compiled.', 'ok');
+    $('caseTag').textContent = 'CASE FILE — CLOSED';
+    $('resultsSection').classList.add('show');
+    setTimeout(()=> $('resultsSection').scrollIntoView({behavior:'smooth', block:'start'}), 300);
+  }catch(err){
+    log(`Chief Editor failed: ${err.message}`, 'err');
+    showRetryBanner();
+  }
+
+  state.running = false;
+  runBtn.disabled = false; runBtn.classList.remove('loading');
+  $('runBtnLabel').textContent = 'Re-run full review';
+}
+
+function showRetryBanner(){
+  $('retrySlot').innerHTML = `<div class="retry-banner"><span>The desk hit a snag mid-review. This can happen with network hiccups — try again.</span><button id="retryBtn">Retry case</button></div>`;
+  $('retryBtn').addEventListener('click', ()=>{ $('retrySlot').innerHTML=''; runPipeline(); });
+}
+
+async function runSynthesis(ctx, userText, originalContent){
+  const dossier = REVIEWERS.map(r=>{
+    const p = state.reviewerOutputs[r.id] || {};
+    return `[${r.code} — ${r.name}]\nScore: ${p.SCORE||'n/a'}\nVerdict: ${p.VERDICT||''}\nStrengths:\n${p.STRENGTHS||''}\nWeaknesses:\n${p.WEAKNESSES||''}\nOpportunity:\n${p.OPPORTUNITY||''}`;
+  }).join('\n\n');
+
+  const system = `You are the Chief Editor at an elite content strategy desk, closing out a case file. You have five specialist reviewer dossiers in front of you plus the original content. Review intensity requested: ${ctx.intensity} — your EXEC_SUMMARY and HEALTH_REPORT must match that tone precisely (if brutal, be direct about what's weak; do not soften). Synthesize everything into one authoritative final report. The REWRITE must be a complete, ready-to-post replacement for the ${ctx.platform} ${ctx.contentType.toLowerCase()}, written in a natural human voice, no markdown formatting, no bracketed placeholders. PERFORMANCE_ESTIMATE must explicitly acknowledge it is an AI estimate, not a guarantee, and explain the reasoning qualitatively (e.g. relative reach potential and why), never fabricate specific numeric predictions like exact view counts. Respond ONLY using this exact plain-text format, with no markdown asterisks and no extra commentary before or after:
+##OVERALL_SCORE##
+<single integer 0-100, your own holistic judgment informed by but not required to average the reviewer scores>
+##EXEC_SUMMARY##
+<2-3 sentences, punchy, matching the requested tone>
+##HEALTH_REPORT##
+<one solid paragraph diagnosing the overall health of this content>
+##TOP_IMPROVEMENTS##
+- <highest impact improvement>
+- <second>
+- <third>
+##REWRITE##
+<the full rewritten, ready-to-post content>
+##ALT_HOOKS##
+- <alternative hook/opener 1>
+- <alternative hook/opener 2>
+- <alternative hook/opener 3>
+##CHECKLIST##
+- <publishing checklist item>
+- <item>
+- <item>
+- <item>
+- <item>
+- <item>
+##PERFORMANCE_ESTIMATE##
+<one paragraph, explicitly framed as an AI estimate, qualitative reasoning about reach/engagement potential relative to the stated goal>
+##BEFORE_AFTER_BEFORE##
+<1-2 sentence diagnosis of the original as submitted>
+##BEFORE_AFTER_AFTER##
+<1-2 sentence description of what changed and why it's stronger>
+##DEEPER_PROMPTS##
+- <a specific follow-up prompt the founder could ask an AI to go deeper, e.g. on a specific weakness>
+- <another>
+- <another>`;
+
+  const userMsg = `ORIGINAL CONTENT:\n${originalContent || '(image only — see attached)'}\n\nREVIEWER DOSSIERS:\n${dossier}`;
+  const raw = await callClaude(system, userMsg, false);
+  const parsed = parseSections(raw);
+  renderResults(parsed);
+}
+
+// ---------------- RENDER RESULTS ----------------
+function renderResults(p){
+  const overall = parseInt((p.OVERALL_SCORE||'').match(/\d+/)?.[0] || '0', 10);
+  $('overallScoreNum').textContent = overall;
+  const circumference = 540;
+  const offset = circumference - (circumference * Math.min(overall,100) / 100);
+  requestAnimationFrame(()=>{ $('gaugeCircle').style.strokeDashoffset = offset; });
+  $('execSummaryText').textContent = p.EXEC_SUMMARY || '—';
+
+  // category grid from reviewer scores
+  const catGrid = $('catGrid');
+  catGrid.innerHTML = '';
+  REVIEWERS.forEach(r=>{
+    const rp = state.reviewerOutputs[r.id] || {};
+    const s = parseInt((rp.SCORE||'').match(/\d+/)?.[0] || '0', 10);
+    const div = document.createElement('div');
+    div.className = 'cat-card';
+    div.innerHTML = `
+      <div class="cat-top"><div class="cat-name">${r.name}</div><div class="cat-score" style="color:${scoreColor(s)}">${s}</div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%"></div></div>
+      <div class="cat-verdict">${rp.VERDICT||''}</div>`;
+    catGrid.appendChild(div);
+    setTimeout(()=>{ div.querySelector('.bar-fill').style.width = s+'%'; }, 100);
+  });
+
+  $('healthReportText').textContent = p.HEALTH_REPORT || '—';
+
+  $('improveList').innerHTML = bulletsToArray(p.TOP_IMPROVEMENTS).map(t=>`<li>${escapeHtml(t)}</li>`).join('');
+
+  const rewriteBox = $('rewriteText');
+  rewriteBox.innerHTML = `<button class="copy-btn" id="copyRewrite">Copy</button>` + escapeHtml(p.REWRITE||'').replace(/\n/g,'<br>');
+  $('copyRewrite').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(p.REWRITE||'').then(()=>{
+      $('copyRewrite').textContent = 'Copied!';
+      setTimeout(()=> $('copyRewrite').textContent='Copy', 1500);
+    });
+  });
+
+  $('beforeText').textContent = p.BEFORE_AFTER_BEFORE || '—';
+  $('afterText').textContent = p.BEFORE_AFTER_AFTER || '—';
+
+  $('hooksList').innerHTML = bulletsToArray(p.ALT_HOOKS).map((h,i)=>`<div class="hook-item"><div class="hook-num">${i+1}</div><div>${escapeHtml(h)}</div></div>`).join('');
+
+  $('checklistList').innerHTML = bulletsToArray(p.CHECKLIST).map(c=>`<div class="check-item"><div class="box"></div><div>${escapeHtml(c)}</div></div>`).join('');
+
+  $('performanceText').textContent = p.PERFORMANCE_ESTIMATE || '—';
+
+  $('deeperList').innerHTML = bulletsToArray(p.DEEPER_PROMPTS).map(d=>`<div class="deep-prompt">${escapeHtml(d)}</div>`).join('');
+}
+
+function scoreColor(s){
+  if(s>=75) return 'var(--green)';
+  if(s>=50) return 'var(--amber)';
+  return 'var(--rose)';
+}
+function escapeHtml(str){
+  return (str||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+$('runBtn').addEventListener('click', runPipeline);
+renderReviewerCards();
+</script>
+</body>
+</html>
